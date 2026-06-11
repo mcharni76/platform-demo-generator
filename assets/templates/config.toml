@@ -1,0 +1,41 @@
+# config.toml — Project configuration template
+# Replace all {PLACEHOLDERS} with actual values from intake
+
+[project]
+name        = "{slug}-platform-demo"
+database    = "{SLUG}_DEMO"
+data_schema = "{DOMAIN}_DATA"
+ml_schema   = "ML"
+
+[warehouse]
+name         = "{SLUG}_DEMO_WH"
+size         = "MEDIUM"
+auto_suspend = 120
+max_clusters = 2
+
+[roles]
+deploy = "{SLUG}_DEPLOY_ROLE"
+app    = "{SLUG}_APP_ROLE"
+reader = "{SLUG}_READER_ROLE"
+
+[users]
+deploy = "{SLUG}_DEPLOY_USER"
+app    = "{SLUG}_APP_USER"
+
+[connections]
+admin  = "{slug}-deploy"
+deploy = "{slug}-deploy"
+
+[spcs]
+database        = "{SLUG}_DEMO"
+schema          = "{DOMAIN}_DATA"
+image_repo      = "{SLUG}_IMAGES"
+compute_pool    = "{SLUG}_POOL"
+instance_family = "CPU_X64_S"
+backend_service = "{SLUG}_BACKEND"
+backend_port    = 8200
+frontend_port   = 80
+
+[data]
+seed_dir = "{target_path}/data/output"
+stage    = "{SLUG}_SEED_STAGE"
