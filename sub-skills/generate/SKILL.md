@@ -776,12 +776,62 @@ git commit -m "feat: S6 SPCS deployment — {slug}"
 
 ## Key Patterns to Preserve (from references/misk-architecture.md)
 
-1. **`exec_sql()` pattern**: always returns `(list[dict], list[str], float)` — rows use lowercase keys
+1. **`exec_sql()` pattern**: always returns `(list[dict], list[str], float)` -- rows use lowercase keys
 2. **Tab cache**: `Partial<Record<TabKey, DataState>>` prevents re-fetch on tab switch
 3. **Wizard steps**: fetch all steps at once, reveal one-by-one client-side
-4. **No auto-fetch**: every page has an explicit "Load Data" button — no `useEffect` auto-fetch
-5. **Mock fallback**: ACCOUNT_USAGE views have ~45 min latency — always add `isIllustrative` flag + amber banner
-6. **Fully qualified SQL**: `{SLUG}_DEMO.{DOMAIN}_DATA.TABLE_NAME` everywhere — no bare table names
-7. **DIV0()**: never `a / b` in SQL — always `DIV0(a, b)`
-8. **MERGE not ON CONFLICT**: Snowflake has no `ON CONFLICT` — use `MERGE INTO`
+4. **No auto-fetch**: every page has an explicit "Load Data" button -- no `useEffect` auto-fetch
+5. **Mock fallback**: ACCOUNT_USAGE views have ~45 min latency -- always add `isIllustrative` flag + amber banner
+6. **Fully qualified SQL**: `{SLUG}_DEMO.{DOMAIN}_DATA.TABLE_NAME` everywhere -- no bare table names
+7. **DIV0()**: never `a / b` in SQL -- always `DIV0(a, b)`
+8. **MERGE not ON CONFLICT**: Snowflake has no `ON CONFLICT` -- use `MERGE INTO`
 9. **Clustering not indexes**: `ALTER TABLE ... CLUSTER BY (col)` not `CREATE INDEX`
+
+## Visualization Rules (MANDATORY -- no JSON dumps)
+
+**NEVER render API response data as `JSON.stringify` in a `<pre>` tag.** Every page MUST use the appropriate visualization component from `assets/templates/`:
+
+| Page type | Visualization component | When to use |
+|-----------|------------------------|-------------|
+| KPI overview (Platform) | `KPIGrid.tsx` | 3-6 large metric cards with trend arrows |
+| Bar/line/area charts (Analytics, Performance, ML) | `ChartCard.tsx` (Recharts) | Any time series, distribution, or comparison data |
+| Drill-down data (Analytics, regional) | `DrillDownTable.tsx` | Tables where clicking a row loads detail data |
+| Node graph (Lineage) | `LineageGraph.tsx` | 3-column source/transform/consumer graph |
+| Quality metrics (Data Quality) | `DataQualityPanel.tsx` | Gauge bars with pass/warn/fail status |
+| Step-by-step demo (Time Travel, Recovery) | `WizardStepPage.tsx` | Progressive reveal with status indicators |
+| Independent cards (ML, Masking, Classification) | `NCIMCardPage.tsx` | 3 side-by-side cards, each with own load button |
+| Multi-tab data (Analytics, Quality) | `TabCachePage.tsx` | Tabs with cached data, chart per tab |
+| Pie/donut (Cost breakdown, classification results) | `ChartCard.tsx` type="pie" | Distribution/proportion data |
+
+### Page-to-visualization mapping
+
+| Page | Primary visualization | Chart types |
+|------|----------------------|-------------|
+| Platform | KPIGrid (3-4 cards) + ChartCard bar | KPI cards + bar chart breakdown |
+| Performance | KPIGrid (benchmark result) + ChartCard bar (cold vs warm) | Bar comparison |
+| Analytics | ChartCard per tab (bar, line, area) + DrillDownTable + MapLibre | 7 different chart types across tabs |
+| ML/AI | NCIMCardPage with ChartCard inside each card | Line (forecast), scatter (anomalies), bar (classification) |
+| Time Travel | WizardStepPage with status-colored steps | Step indicators, not charts |
+| Cortex AI | NCIMCardPage with sentiment bar charts per card | Bar (sentiment), table (entities) |
+| Lineage | **LineageGraph** (3-column node layout) | Node graph, NOT a table |
+| Quality | **DataQualityPanel** with gauge bars | Quality bars with thresholds, NOT raw numbers |
+| Optimization | ChartCard bar (query history) + KPIGrid | Bar chart + KPI |
+| Pricing | ChartCard pie (cost breakdown) + KPIGrid | Pie chart + explainer |
+| Dynamic Tables | ChartCard area (refresh timeline) + table | Area chart + status table |
+| Data Masking | NCIMCardPage: raw table → policy code → masked table | 3 cards showing transformation |
+| Data Classification | TabCachePage: scan results as ChartCard pie | Pie (categories) + table (columns) |
+| Ask {Customer} | Chat UI (custom) | Conversation bubbles, not charts |
+| Cortex Agent | Chat UI (custom) | Conversation with tool-use trace |
+
+### Required packages in `package.json`
+
+```json
+{
+  "dependencies": {
+    "recharts": "^2.12.0",
+    "maplibre-gl": "^4.0.0",
+    "framer-motion": "^11.0.0"
+  }
+}
+```
+
+The generate sub-skill MUST include these in the generated `package.json`. Without them, pages fall back to JSON dumps.

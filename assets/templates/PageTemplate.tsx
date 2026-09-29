@@ -80,8 +80,27 @@ export default function PageTemplate() {
         <div className="space-y-4">
           {/* <QueryTimeBadge ms={state.ms} /> */}
           {/* <SqlPreviewButton sql="SELECT ..." /> */}
-          {/* <DataPreview data={state.data} /> */}
-          <pre className="text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded overflow-auto">
+
+          {/* VISUALIZATION — choose the right component for this page:
+           *
+           * KPI cards:        import KPIGrid from '../shared/KPIGrid'
+           *                   <KPIGrid kpis={[{ label: "Total", value: state.data.total, trend: "+12%" }]} />
+           *
+           * Bar/Line/Area:    import ChartCard from '../shared/ChartCard'
+           *                   <ChartCard type="bar" data={state.data.rows} xKey="region" yKey="count" title="By Region" />
+           *
+           * Drill-down table: import DrillDownTable from '../shared/DrillDownTable'
+           *                   <DrillDownTable data={state.data.rows} columns={[...]} onDrillDown={...} />
+           *
+           * NEVER use JSON.stringify for production pages. Raw JSON is for debugging only.
+           */}
+
+          {/* Example: KPI + Chart combo (adapt per page) */}
+          {/* <KPIGrid kpis={formatKPIs(state.data)} /> */}
+          {/* <ChartCard type="bar" data={state.data.breakdown} xKey="category" yKey="count" title="Distribution" /> */}
+
+          {/* REMOVE THIS — placeholder only for template preview: */}
+          <pre className="text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded overflow-auto opacity-50">
             {JSON.stringify(state.data, null, 2)}
           </pre>
         </div>

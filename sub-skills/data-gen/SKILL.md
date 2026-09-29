@@ -205,6 +205,67 @@ Create `{target_path}/scripts/generate_seed_data.py` using the confirmed entity 
     # The script must use the regulatory_context to select the right docs
     ```
 
+12. **Data quality issues injection** (CRITICAL for Data Quality page):
+
+    The Data Quality page demonstrates Snowflake DMFs catching real problems. If the data is clean, the page shows "all green" -- which is a boring demo. Inject these issues deliberately:
+
+    ```python
+    # --- Null injection: 3-5% nulls in specific columns ---
+    # Pick 2-3 columns per main entity and set ~4% of values to None
+    NULL_INJECTION_RATE = 0.04
+    NULL_COLUMNS = ['email', 'phone', 'category']  # domain-specific
+    for col in NULL_COLUMNS:
+        for row in primary_rows:
+            if RNG.random() < NULL_INJECTION_RATE:
+                row[col_index] = None
+
+    # --- Duplicate injection: ~1.5% duplicate rows ---
+    # Copy random existing rows and re-insert with same ID but different timestamp
+    DUPLICATE_RATE = 0.015
+    num_dupes = int(len(primary_rows) * DUPLICATE_RATE)
+    for _ in range(num_dupes):
+        original = RNG.choice(primary_rows)
+        dupe = list(original)
+        dupe[date_col_index] = rand_date(2025, 2026)  # different date, same entity
+        primary_rows.append(tuple(dupe))
+
+    # --- Stale data injection: 2% of records have dates > 90 days old with no updates ---
+    STALE_RATE = 0.02
+    stale_date = (datetime.now() - timedelta(days=120)).strftime("%Y-%m-%d")
+    for row in primary_rows:
+        if RNG.random() < STALE_RATE:
+            row[date_col_index] = stale_date
+            row[status_col_index] = 'pending'  # stale pending record
+
+    # --- Orphan foreign keys: 0.5% of secondary records point to non-existent primary IDs ---
+    ORPHAN_RATE = 0.005
+    for row in secondary_rows:
+        if RNG.random() < ORPHAN_RATE:
+            row[fk_col_index] = f"PRI_ORPHAN_{RNG.randint(1, 999)}"  # will not match any primary
+
+    # --- Formatting inconsistencies: mixed case in status columns ---
+    FORMAT_NOISE_RATE = 0.02
+    STATUS_VARIANTS = {
+        'Active': ['active', 'ACTIVE', 'Active ', ' Active', 'active '],
+        'Completed': ['completed', 'COMPLETED', 'Completed ', 'complete'],
+    }
+    for row in primary_rows:
+        if RNG.random() < FORMAT_NOISE_RATE:
+            status = row[status_col_index]
+            if status in STATUS_VARIANTS:
+                row[status_col_index] = RNG.choice(STATUS_VARIANTS[status])
+    ```
+
+    **Expected DQ results when the Data Quality page runs:**
+
+    | Metric | Expected finding | Demo talking point |
+    |--------|-----------------|-------------------|
+    | Null rate on email | ~4% | "DMFs caught 4,000 missing email addresses -- potential compliance gap" |
+    | Duplicate rate | ~1.5% | "1,500 duplicate records detected -- would corrupt any aggregate report" |
+    | Freshness | 2% stale records (>90 days) | "2% of records haven't been updated in 120 days -- stale pipeline?" |
+    | Referential integrity | 0.5% orphan FKs | "500 secondary records point to non-existent primaries -- data integrity issue" |
+    | Format consistency | 2% mixed case | "Status field has 5 different formats for 'Active' -- needs standardization" |
+
 ---
 
 ## Step 5: Run and Preview (interactive)
@@ -265,3 +326,4 @@ Show the user the load results (rows loaded per table, any errors).
 - **Missing POLICY_DOCUMENTS.csv**. Without it, the Cortex Search service has nothing to index.
 - **Broken foreign keys**. Secondary entity IDs must reference actual primary entity IDs.
 - **Non-deterministic randomness**. Always use `Random(42)` seed -- reproducible data means consistent demo results.
+- **Clean data with no quality issues**. The Data Quality page needs real problems to catch: ~4% nulls, ~1.5% duplicates, ~2% stale records, ~0.5% orphan FKs, ~2% format inconsistencies. If data is perfect, the DQ demo shows "all green" and proves nothing.
