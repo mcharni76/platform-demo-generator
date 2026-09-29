@@ -3,19 +3,94 @@ name: platform-demo-intake
 description: "Interactive wizard-style intake for platform demo generation. Uses ask_user_question tool to collect inputs step-by-step with smart defaults, validation, and confirmation."
 ---
 
-# Intake — Interactive Wizard
+# Intake -- Interactive Wizard
 
-Collect all inputs needed to generate the platform demo using an interactive wizard. Uses `ask_user_question` tool to prompt the user step-by-step with smart defaults and validation.
+Collect all inputs needed to generate the platform demo using a strict step-by-step wizard. Every step uses `ask_user_question`. No step can be skipped. Each step validates its output before proceeding.
+
+---
+
+## Pre-Flight Checks (BEFORE the wizard starts)
+
+Run these checks silently. If any fail, report to the user and help fix before starting the wizard.
+
+```bash
+# 1. Snow CLI installed?
+snow --version 2>/dev/null || echo "FAIL: Snow CLI not installed"
+
+# 2. Any connections configured?
+snow connection list 2>/dev/null || echo "FAIL: No connections"
+
+# 3. Node.js available?
+node --version 2>/dev/null || echo "FAIL: Node.js not installed"
+
+# 4. Python available?
+python3 --version 2>/dev/null || echo "FAIL: Python 3 not installed"
+
+# 5. uv available? (optional but recommended)
+uv --version 2>/dev/null || echo "WARN: uv not installed (will use pip)"
+```
+
+If any FAIL, present the issues:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Setup",
+      "question": "Pre-flight check found issues:\n\n{list of FAIL/WARN items with install commands}\n\nFix these before continuing, or proceed anyway?",
+      "multiSelect": false,
+      "options": [
+        {"label": "I've fixed them, re-check", "description": "Run the checks again"},
+        {"label": "Proceed anyway", "description": "I'll handle missing tools later"},
+        {"label": "Help me install", "description": "Walk me through installing the missing tools"}
+      ]
+    }
+  ]
+}
+```
+
+If "Help me install" -- provide the exact install commands for the user's platform (macOS: `brew install`, Linux: `apt/yum`).
+
+---
+
+## Wizard Progress
+
+Every step displays which step the user is on. Use this format at the top of each question:
+
+```
+Step {N}/7: {step_name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[✓] Pre-flight  [✓] Scope  [●] Identity  [ ] Connection  [ ] Config  [ ] Brand  [ ] Confirm
+```
+
+Steps in order:
+1. **Pre-flight** -- environment checks (automatic)
+2. **Scope** -- how to scope the demo (document / requirements / features / auto)
+3. **Identity** -- customer name, country, website
+4. **Connection** -- pick or create Snowflake connection
+5. **Config** -- slug, language, project path
+6. **Brand & Deploy** -- brand color, deployment mode
+7. **Confirm** -- review all fields, approve
+
+---
+
+## Enforcement Rules
+
+- **No skipping**: every step MUST complete before the next starts
+- **Validation at each step**: if a field is invalid (e.g., website URL doesn't start with http), re-ask
+- **Connection MUST be verified**: the wizard cannot proceed past Step 4 without a working connection
+- **Confirmation is mandatory**: the final step shows all collected fields and requires explicit approval
+- **If the user says "skip" or "later" for any required field**: explain why it's needed and re-ask
 
 ---
 
 ## Wizard Flow
 
-The intake runs as a guided wizard. The **first question** determines the scoping path: document-driven or interactive feature selection.
+The intake runs as a strict 7-step wizard. The first question determines the scoping path.
 
 ---
 
-## Step 0: Scoping Mode (ask_user_question -- ALWAYS FIRST)
+## Step 1: Scoping Mode (ask_user_question -- ALWAYS FIRST)
 
 This is the entry point. Before collecting any customer details, ask how the partner wants to scope the demo:
 
@@ -24,7 +99,7 @@ This is the entry point. Before collecting any customer details, ask how the par
   "questions": [
     {
       "header": "Scoping",
-      "question": "How would you like to scope this demo?",
+      "question": "Step 1/7: Scoping Mode\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[✓] Pre-flight  [●] Scope  [ ] Identity  [ ] Connection  [ ] Config  [ ] Brand  [ ] Confirm\n\nHow would you like to scope this demo?",
       "multiSelect": false,
       "options": [
         {"label": "I have a document", "description": "I'll provide an RFP, requirements brief, MoM, scope doc, or presentation to drive the demo scope"},
@@ -97,16 +172,14 @@ Set `context_source: "auto"` -- this tells the research sub-skill to use industr
 
 ---
 
-## Step 1: Core Identity (ask_user_question)
-
-Use the `ask_user_question` tool with these questions:
+## Step 2: Core Identity (ask_user_question)
 
 ```json
 {
   "questions": [
     {
       "header": "Customer",
-      "question": "What is the customer's full name?",
+      "question": "Step 2/7: Customer Identity\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[✓] Pre-flight  [✓] Scope  [●] Identity  [ ] Connection  [ ] Config  [ ] Brand  [ ] Confirm\n\nWhat is the customer's full name?",
       "type": "text",
       "defaultValue": ""
     },
@@ -134,7 +207,7 @@ After receiving answers:
 
 ---
 
-## Step 2: Connection Setup (ALWAYS run before the config form)
+## Step 3: Connection Setup (ALWAYS run before the config form)
 
 **Before asking any configuration questions**, proactively check available connections:
 
@@ -151,7 +224,7 @@ Parse the output into a list of connection names. Then present the interactive c
   "questions": [
     {
       "header": "Connection",
-      "question": "I found these Snowflake connections on your machine. Which one should this demo use? (needs ACCOUNTADMIN)\n\n{connection_list_formatted}",
+      "question": "Step 3/7: Snowflake Connection\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[✓] Pre-flight  [✓] Scope  [✓] Identity  [●] Connection  [ ] Config  [ ] Brand  [ ] Confirm\n\nI found these Snowflake connections. Which one should this demo use? (needs ACCOUNTADMIN)\n\n{connection_list_formatted}",
       "multiSelect": false,
       "options": [
         {"label": "{conn_1}", "description": "Account: {account_1}, User: {user_1}"},
@@ -286,16 +359,16 @@ Show the result and confirm:
 
 ---
 
-## Step 3: Configuration (ask_user_question -- smart defaults pre-filled)
+## Step 4: Configuration (ask_user_question -- smart defaults pre-filled)
 
-Now ask remaining config fields (connection is already resolved from Step 2):
+Now ask remaining config fields (connection is already resolved from Step 3):
 
 ```json
 {
   "questions": [
     {
       "header": "Slug",
-      "question": "Project slug (used for DB name, folder, Docker images)?",
+      "question": "Step 4/7: Configuration\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[✓] Pre-flight  [✓] Scope  [✓] Identity  [✓] Connection  [●] Config  [ ] Brand  [ ] Confirm\n\nProject slug (used for DB name, folder, Docker images)?",
       "type": "text",
       "defaultValue": "{derived_slug}"
     },
@@ -325,14 +398,14 @@ Now ask remaining config fields (connection is already resolved from Step 2):
 
 ---
 
-## Step 4: Brand & Deployment (ask_user_question)
+## Step 5: Brand & Deployment (ask_user_question)
 
 ```json
 {
   "questions": [
     {
       "header": "Brand color",
-      "question": "Primary brand color (hex)? Leave default for Snowflake blue.",
+      "question": "Step 5/7: Brand & Deployment\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[✓] Pre-flight  [✓] Scope  [✓] Identity  [✓] Connection  [✓] Config  [●] Brand  [ ] Confirm\n\nPrimary brand color (hex)? Leave default for Snowflake blue.",
       "type": "text",
       "defaultValue": "#29B5E8"
     },
@@ -354,9 +427,9 @@ Now ask remaining config fields (connection is already resolved from Step 2):
 
 ---
 
-## Step 5: Confirm Context Block
+## Step 6: Confirm Context Block
 
-After all 3 steps, produce and display the confirmed context block:
+After all steps, produce and display the confirmed context block:
 
 ```yaml
 # Customer Demo Context — confirmed {date}
@@ -366,11 +439,14 @@ display_name: "{short name}"
 country: "{country}"
 language: "{en | en+ar | en+fr | en+tr | ...}"
 website_url: "{url}"
-context_source: "{url or path | none}"
+context_source: "{url or path | interactive | auto | none}"
+context_type: "{RFP | requirements_brief | MoM | scope_brief | presentation | interactive | auto}"
 connection_name: "{connection}"
+connection_verified: true
 target_path: "{path}"
 brand_color: "{color}"
-regulatory_context: "{PDPL | GDPR | HIPAA | SOX | Generic}"
+deployment_mode: "{local | local+appruntime | local+spcs | appruntime}"
+regulatory_context: "{PDPL | GDPR | HIPAA | KVKK | ...}"
 ```
 
 Then ask for final confirmation:
@@ -380,7 +456,7 @@ Then ask for final confirmation:
   "questions": [
     {
       "header": "Confirm",
-      "question": "Does this look correct? (I'll proceed to research next)",
+      "question": "Step 6/7: Final Review\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n[✓] Pre-flight  [✓] Scope  [✓] Identity  [✓] Connection  [✓] Config  [✓] Brand  [●] Confirm\n\nAll inputs collected:\n\n  Customer:    {customer_name}\n  Country:     {country} ({regulatory_context})\n  Language:    {language}\n  Slug:        {slug}\n  Connection:  {connection_name} (verified ✓)\n  Path:        {target_path}\n  Brand:       {brand_color}\n  Deploy:      {deployment_mode}\n  Scope:       {context_type}: {context_source_summary}\n\nEverything correct?",
       "type": "options",
       "multiSelect": false,
       "options": [

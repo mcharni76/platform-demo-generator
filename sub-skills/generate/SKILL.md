@@ -481,6 +481,60 @@ Load `sub-skills/demo-script/SKILL.md` and generate talking points.
 git commit -m "docs: S5 local verification + README + DEMO_SCRIPT — {slug}"
 ```
 
+### S5 Cost Estimator: Deployed Demo Running Cost
+
+Before proposing deployment, calculate and present the estimated ongoing cost of the deployed demo. This helps partners set expectations with customers.
+
+Run these queries:
+
+```sql
+-- Current storage
+SELECT
+  ROUND(SUM(AVERAGE_DATABASE_BYTES) / POWER(1024, 3), 3) AS storage_tb
+FROM SNOWFLAKE.ACCOUNT_USAGE.DATABASE_STORAGE_USAGE_HISTORY
+WHERE DATABASE_NAME = '{SLUG}_DEMO'
+  AND USAGE_DATE = CURRENT_DATE();
+
+-- Warehouse config
+SHOW WAREHOUSES LIKE '{SLUG}_DEMO_WH';
+-- Extract: size, auto_suspend, min/max_cluster_count
+
+-- Cortex Search service (always-on cost)
+SHOW CORTEX SEARCH SERVICES IN SCHEMA {SLUG}_DEMO.{DOMAIN}_DATA;
+
+-- Count active Dynamic Tables
+SELECT COUNT(*) AS dt_count
+FROM INFORMATION_SCHEMA.DYNAMIC_TABLES
+WHERE TABLE_SCHEMA = '{DOMAIN}_DATA';
+```
+
+Present the cost estimate:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Demo cost",
+      "question": "Estimated running cost of the deployed demo:\n\n| Component | Config | Est. monthly cost |\n|-----------|--------|-------------------|\n| Warehouse ({SLUG}_DEMO_WH) | {size}, auto-suspend {N}s | ~{X} credits/mo (idle: ~0) |\n| Storage | {N} GB | ~${Y}/mo ($23/TB) |\n| Cortex Search service | {N} docs indexed | ~{Z} credits/mo |\n| Dynamic Tables ({N} DTs) | {target_lag} refresh | ~{W} credits/mo |\n| Cortex AI functions | Per-query (on demand) | ~{V} credits per demo run |\n| App Runtime / SPCS | {config} | ~{U} credits/hr when active |\n| **Total idle cost** | | **~{total_idle} credits/mo** |\n| **Total per demo run** | ~30 min active | **~{per_run} credits** |\n\nNotes:\n- Warehouse auto-suspends after {N}s of inactivity -- idle cost is near zero\n- Cortex Search has a baseline cost while the service exists\n- Dynamic Tables refresh automatically -- cost depends on target lag\n- Per demo run = ~30 min of warehouse + Cortex AI calls\n\nProceed to deployment options?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Understood, proceed", "description": "Show me deployment options"},
+        {"label": "Reduce costs", "description": "Help me optimize (smaller warehouse, longer auto-suspend, fewer DTs)"},
+        {"label": "Generate cost doc", "description": "Write a cost breakdown document I can share with the customer"}
+      ]
+    }
+  ]
+}
+```
+
+If "Reduce costs" -- suggest optimizations:
+- Increase auto-suspend to 300s (from 120s)
+- Use X-SMALL warehouse for demos with <1M rows
+- Suspend Cortex Search service between demo sessions
+- Set Dynamic Table target lag to 1 hour (instead of downstream)
+
+If "Generate cost doc" -- write `{target_path}/docs/COST_ESTIMATE.md` with the full breakdown.
+
 ### End of S5: Propose Deployment
 
 After S5 is complete and the demo runs locally, ask the user:

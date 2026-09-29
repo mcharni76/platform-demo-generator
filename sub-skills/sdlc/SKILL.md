@@ -11,6 +11,21 @@ This sub-skill is loaded at the **start of every session** and defines the non-n
 
 ## SESSION START PROTOCOL (always first)
 
+### Step 0: Cost Tracking Init
+
+At the start of every session, capture the baseline credit usage so we can compute session cost at the end:
+
+```sql
+SELECT SUM(CREDITS_USED) AS credits_before
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE WAREHOUSE_NAME = '{SLUG}_DEMO_WH'
+  AND START_TIME >= DATEADD('day', -1, CURRENT_TIMESTAMP());
+```
+
+Store the result as `credits_before` for this session. If the warehouse doesn't exist yet (S0/S1), set `credits_before = 0`.
+
+Also record session start time: `session_start_time = CURRENT_TIMESTAMP()`.
+
 ### Step 1: Read Memory
 
 ```
@@ -78,6 +93,17 @@ Create `/memories/{slug}-demo-project.md` with:
 
 ## Gotchas Found
 (append during any session)
+
+## Build Cost Tracker
+| Session | Credits (compute) | Credits (cloud) | Cortex tokens | Storage delta | Duration |
+|---------|-------------------|-----------------|---------------|---------------|----------|
+| S0 | 0 | 0 | 0 | 0 | {N} min |
+| S1 | — | — | — | — | — |
+| S2 | — | — | — | — | — |
+| S3 | — | — | — | — | — |
+| S4 | — | — | — | — | — |
+| S5 | — | — | — | — | — |
+| **Total** | **—** | **—** | **—** | **—** | **—** |
 ```
 
 ---
@@ -162,6 +188,46 @@ Before creating the handover, verify:
 
 If any check fails → fix it before proceeding. Do NOT skip to handover with known failures.
 
+### Step 0b: Capture Session Build Cost
+
+Query the credit usage since session start:
+
+```sql
+-- Credits consumed this session
+SELECT
+  SUM(CREDITS_USED) AS credits_this_session,
+  SUM(CREDITS_USED_COMPUTE) AS compute_credits,
+  SUM(CREDITS_USED_CLOUD_SERVICES) AS cloud_services_credits
+FROM SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY
+WHERE WAREHOUSE_NAME = '{SLUG}_DEMO_WH'
+  AND START_TIME >= '{session_start_time}';
+
+-- Cortex AI costs (if any Cortex functions were called this session)
+SELECT
+  FUNCTION_NAME,
+  COUNT(*) AS calls,
+  SUM(TOKENS_PRODUCED + TOKENS_CONSUMED) AS total_tokens
+FROM SNOWFLAKE.ACCOUNT_USAGE.CORTEX_FUNCTIONS_USAGE_HISTORY
+WHERE START_TIME >= '{session_start_time}'
+GROUP BY FUNCTION_NAME;
+
+-- Storage delta
+SELECT
+  SUM(AVERAGE_DATABASE_BYTES) / POWER(1024, 3) AS storage_tb
+FROM SNOWFLAKE.ACCOUNT_USAGE.DATABASE_STORAGE_USAGE_HISTORY
+WHERE DATABASE_NAME = '{SLUG}_DEMO'
+  AND USAGE_DATE = CURRENT_DATE();
+```
+
+Record in the handover and memory:
+```
+Session {N} Build Cost:
+  Warehouse credits: {compute_credits} compute + {cloud_services_credits} cloud services
+  Cortex AI tokens:  {total_tokens} ({function_breakdown})
+  Storage delta:     {storage_delta_gb} GB
+  Session duration:  {duration_minutes} min
+```
+
 ### Step 1: Create Handover Document
 
 Write `{target_path}/docs/sessions/SESSION_{N}_HANDOVER.md`:
@@ -190,6 +256,16 @@ Write `{target_path}/docs/sessions/SESSION_{N}_HANDOVER.md`:
 ## Git Commit
 Hash: {commit_hash}
 Message: feat: S{N} {session_name} complete — {slug}
+
+## Build Cost This Session
+| Metric | Value |
+|--------|-------|
+| Warehouse credits (compute) | {compute_credits} |
+| Warehouse credits (cloud services) | {cloud_services_credits} |
+| Cortex AI tokens | {total_tokens} |
+| Storage delta | {storage_delta_gb} GB |
+| Session duration | {duration_minutes} min |
+| Cumulative build cost (S0-S{N}) | {running_total_credits} credits |
 ```
 
 ### Step 2: Git Summary Commit
@@ -324,6 +400,13 @@ DEMO READY — {customer_name} Platform Demo
 Project: {target_path}
 Connection: {connection_name}
 Git commits: {N commits across sessions}
+
+BUILD COST SUMMARY (S0-S5):
+  Total warehouse credits:  {total_compute + total_cloud_services}
+  Total Cortex AI tokens:   {total_tokens}
+  Total storage:            {storage_gb} GB
+  Total build time:         {total_duration} min across {N} sessions
+  Estimated build cost:     ~${estimated_usd} USD
 
 START LOCAL DEV:
   cd {target_path}/backend
