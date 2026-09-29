@@ -11,11 +11,93 @@ Collect all inputs needed to generate the platform demo using an interactive wiz
 
 ## Wizard Flow
 
-The intake runs as a **3-step wizard** (not a wall of text). Each step uses `ask_user_question` with pre-filled defaults where possible.
+The intake runs as a guided wizard. The **first question** determines the scoping path: document-driven or interactive feature selection.
 
 ---
 
-## Step 1: Core Identity (ask_user_question — 3 fields)
+## Step 0: Scoping Mode (ask_user_question -- ALWAYS FIRST)
+
+This is the entry point. Before collecting any customer details, ask how the partner wants to scope the demo:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Scoping",
+      "question": "How would you like to scope this demo?",
+      "multiSelect": false,
+      "options": [
+        {"label": "I have a document", "description": "I'll provide an RFP, requirements brief, MoM, scope doc, or presentation to drive the demo scope"},
+        {"label": "I have shared requirements", "description": "The customer told me what they need -- I'll describe it in my own words"},
+        {"label": "Let me pick features", "description": "Show me all available Snowflake features and I'll select which ones to include"},
+        {"label": "Auto-recommend by industry", "description": "Just tell me the customer and industry -- recommend the best demo based on your scenario matrix"}
+      ]
+    }
+  ]
+}
+```
+
+### Path A: "I have a document"
+
+```json
+{
+  "questions": [
+    {
+      "header": "Document",
+      "question": "Provide the document (the skill will extract use cases, requirements, and compliance needs automatically):",
+      "type": "text",
+      "defaultValue": ""
+    },
+    {
+      "header": "Doc type",
+      "question": "What kind of document is this?",
+      "multiSelect": false,
+      "options": [
+        {"label": "RFP / RFI", "description": "Request for Proposal -- has evaluation criteria, scoring, compliance requirements"},
+        {"label": "Requirements brief", "description": "Functional/technical requirements from the customer"},
+        {"label": "Meeting notes / MoM", "description": "Minutes of Meeting -- pain points discussed, priorities agreed"},
+        {"label": "Demo scope brief", "description": "Specific pages/scenarios requested, audience level, time constraints"},
+        {"label": "Presentation / deck", "description": "Customer's own slides -- strategic priorities, existing architecture"}
+      ]
+    }
+  ]
+}
+```
+
+Store the document path/URL as `context_source` and the type as `context_type`. The research sub-skill will extract scope from it, then present findings for confirmation. The user can still adjust pages after extraction.
+
+### Path B: "I have shared requirements"
+
+```json
+{
+  "questions": [
+    {
+      "header": "Requirements",
+      "question": "Describe what the customer needs in your own words. Include: what they want to see, their pain points, any specific Snowflake features mentioned, compliance requirements, audience (technical/business/executive).",
+      "type": "text",
+      "defaultValue": ""
+    }
+  ]
+}
+```
+
+Store as `context_source` (inline text). The research sub-skill will parse it the same way as a document.
+
+### Path C: "Let me pick features"
+
+Skip directly to the Snowflake Features Selection in the research sub-skill (Step 3b). The research step will still run website fetch for industry detection, but the user drives feature selection manually.
+
+Set `context_source: "interactive"` -- this tells the research sub-skill to skip document extraction and go straight to the feature catalog.
+
+### Path D: "Auto-recommend by industry"
+
+Minimal input path. Collect only customer name + country + website, then let the research sub-skill auto-recommend based on the scenario matrix. The user confirms the recommendation.
+
+Set `context_source: "auto"` -- this tells the research sub-skill to use industry defaults from scenario-matrix.md.
+
+---
+
+## Step 1: Core Identity (ask_user_question)
 
 Use the `ask_user_question` tool with these questions:
 
@@ -243,22 +325,16 @@ Now ask remaining config fields (connection is already resolved from Step 2):
 
 ---
 
-## Step 3: Optional Enrichment (ask_user_question — all optional)
+## Step 4: Brand & Deployment (ask_user_question)
 
 ```json
 {
   "questions": [
     {
       "header": "Brand color",
-      "question": "Primary brand color (hex)? Leave default to auto-detect from website.",
+      "question": "Primary brand color (hex)? Leave default for Snowflake blue.",
       "type": "text",
       "defaultValue": "#29B5E8"
-    },
-    {
-      "header": "Context doc",
-      "question": "Do you have a context document? (RFP, MoM summary, demo scope brief, requirements doc — URL or local path, or leave empty)",
-      "type": "text",
-      "defaultValue": ""
     },
     {
       "header": "Deployment",
@@ -266,9 +342,9 @@ Now ask remaining config fields (connection is already resolved from Step 2):
       "type": "options",
       "multiSelect": false,
       "options": [
-        {"label": "Local only", "description": "Run on laptop (uvicorn + npm run dev) — fastest, no cloud setup needed"},
-        {"label": "Local + App Runtime", "description": "Build locally first, then deploy to Snowflake App Runtime (Next.js, no Docker) — recommended"},
-        {"label": "Local + SPCS", "description": "Build locally, then port to SPCS (Docker multi-container) — legacy approach"},
+        {"label": "Local only", "description": "Run on laptop (uvicorn + npm run dev) -- fastest, no cloud setup needed"},
+        {"label": "Local + App Runtime", "description": "Build locally first, then deploy to Snowflake App Runtime (Next.js, no Docker) -- recommended"},
+        {"label": "Local + SPCS", "description": "Build locally, then port to SPCS (Docker multi-container) -- legacy approach"},
         {"label": "App Runtime from start", "description": "Design as Next.js app for App Runtime from Session 1 (snow app deploy)"}
       ]
     }
@@ -276,23 +352,9 @@ Now ask remaining config fields (connection is already resolved from Step 2):
 }
 ```
 
-### Context Document Types
-
-The skill accepts any of these as `context_source`:
-
-| Document type | What the skill extracts from it |
-|---|---|
-| **RFP** (Request for Proposal) | Evaluation criteria, use cases, compliance requirements, timeline |
-| **MoM** (Minutes of Meeting) | Pain points discussed, priorities agreed, stakeholder names |
-| **Demo Scope Brief** | Specific pages/scenarios requested, audience level, time constraints |
-| **Requirements Doc** | Functional requirements, data sources, integration points |
-| **Presentation / Deck** | Customer goals, strategic priorities, existing architecture |
-
-All types are processed the same way: `web_fetch` (if URL) or `read` (if local path), then analyzed by the research sub-skill for industry, entities, pain points, and regulatory context.
-
 ---
 
-## Step 4: Confirm Context Block
+## Step 5: Confirm Context Block
 
 After all 3 steps, produce and display the confirmed context block:
 

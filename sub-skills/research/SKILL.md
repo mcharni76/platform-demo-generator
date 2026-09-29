@@ -98,49 +98,141 @@ This is critical when the website is uninformative. If fewer than 3 pain points 
 
 ---
 
-## Step 3b: Snowflake Feature Themes Selection (ask_user_question)
+## Step 3b: Snowflake Features Selection (ask_user_question)
 
-Before building the storytelling arc, let the partner choose which **Snowflake feature themes** they want to emphasize. This drives which pages are recommended and how the story is framed.
+Before building the storytelling arc, let the partner select which **specific Snowflake features** to showcase. This is the core of what makes each demo unique.
+
+If `context_source` is `"interactive"` (partner chose "Let me pick features" in intake), this step is the PRIMARY scoping mechanism. Otherwise, it refines what was extracted from the document.
+
+Present features in 4 grouped multi-select questions (respecting the 6-option limit per question). Mark features as RECOMMENDED based on industry priority from `scenario-matrix.md`.
+
+**Question 1: AI & Intelligence**
 
 ```json
 {
   "questions": [
     {
-      "header": "Themes",
-      "question": "Which Snowflake feature themes do you want to emphasize in this demo? (Select 2-4 themes that matter most to the customer)",
+      "header": "AI",
+      "question": "Which AI & Intelligence features should the demo showcase?",
       "multiSelect": true,
       "options": [
-        {"label": "AI & Machine Learning", "description": "Cortex AI, ML functions, Cortex Analyst, Cortex Agent -- AI-powered insights"},
-        {"label": "Data Governance", "description": "Masking, Classification, Policy Intelligence, Lineage -- compliance and security"},
-        {"label": "Real-time & Streaming", "description": "Snowpipe Streaming, Dynamic Tables, Tasks+Streams -- real-time pipelines"},
-        {"label": "Performance & Scale", "description": "Elastic compute, result cache, clustering -- speed at scale"},
-        {"label": "Open Formats & Interop", "description": "Iceberg Tables, open data lake, multi-engine access -- no lock-in"},
-        {"label": "Data Quality & Ops", "description": "Data Metric Functions, Time Travel, Recovery, Optimization -- operational excellence"}
+        {"label": "Cortex Analyst (NL-to-SQL)", "description": "Business users ask questions in plain language, get SQL-backed answers. Chatbot UI with predefined questions."},
+        {"label": "Cortex AI Functions", "description": "SENTIMENT, SUMMARIZE, TRANSLATE, CLASSIFY -- NLP on any text column, no Python needed."},
+        {"label": "Cortex Agent (Agentic AI)", "description": "Multi-tool AI agent that reasons across Cortex Search (docs) + Cortex Analyst (data) in one conversation."},
+        {"label": "ML Functions (Forecast/Anomaly/Classify)", "description": "Built-in FORECAST, DETECT_ANOMALIES, CLASSIFICATION -- train and predict in SQL."},
+        {"label": "Document AI (Parse Document)", "description": "AI_PARSE_DOCUMENT: extract structured data from PDFs, invoices, contracts."},
+        {"label": "Cortex Search (RAG)", "description": "Natural language search over unstructured docs (regulations, policies). Powers the Policy Intelligence page."}
       ]
     }
   ]
 }
 ```
 
-### Theme-to-Page Mapping
+**Question 2: Data Engineering & Pipelines**
 
-Use the selected themes to pre-populate the RECOMMENDED pages in the capability selection (Step 6):
+```json
+{
+  "questions": [
+    {
+      "header": "Engineering",
+      "question": "Which data engineering features?",
+      "multiSelect": true,
+      "options": [
+        {"label": "Dynamic Tables", "description": "Declarative pipelines: define the output, Snowflake manages the refresh. No cron/Airflow."},
+        {"label": "Tasks + Streams (CDC)", "description": "Event-driven processing: streams capture changes, tasks fire automatically. Only changed rows processed."},
+        {"label": "Snowpipe Streaming", "description": "Sub-second data ingestion without file staging. Real-time analytics pipeline."},
+        {"label": "Iceberg Tables (Open Format)", "description": "Apache Iceberg: open table format, no vendor lock-in, interoperable with Spark/Trino/Flink."},
+        {"label": "Geospatial (H3 Hex Grid)", "description": "H3 geospatial indexing + MapLibre choropleth maps. Regional drill-down with geographic visualization."},
+        {"label": "Snowflake Notebooks", "description": "Data science workflow inside Snowflake. Pre-rendered notebook outputs, connected to live data."}
+      ]
+    }
+  ]
+}
+```
 
-| Theme | Pages auto-recommended |
-|-------|----------------------|
-| AI & Machine Learning | ML/AI, Cortex AI, Ask {Customer}, Cortex Agent, Document AI, Notebooks |
-| Data Governance | Data Masking, Data Classification, Policy Intelligence, Data Lineage |
-| Real-time & Streaming | Streaming (Snowpipe), Dynamic Tables, Tasks + Streams |
-| Performance & Scale | Performance, Analytics, Optimization, Pricing |
-| Open Formats & Interop | Iceberg Tables, Architecture |
-| Data Quality & Ops | Data Quality, Time Travel, Recovery, Optimization |
+**Question 3: Governance & Security**
 
-Pages that appear in multiple selected themes get a stronger recommendation. Pages that appear in zero selected themes are still available but marked as OPTIONAL in the capability selection.
+```json
+{
+  "questions": [
+    {
+      "header": "Governance",
+      "question": "Which governance and security features?",
+      "multiSelect": true,
+      "options": [
+        {"label": "Dynamic Data Masking", "description": "Column-level security: same table, different views per role. PII masked for analysts, visible to authorized roles."},
+        {"label": "Data Classification (SYSTEM$CLASSIFY)", "description": "Auto-discover PII/sensitive columns across all tables. Compliance inventory in minutes."},
+        {"label": "Policy Intelligence (RAG)", "description": "Natural language Q&A over regulatory docs (PDPL/GDPR/HIPAA/KVKK). AI-powered compliance check."},
+        {"label": "Data Lineage", "description": "OBJECT_DEPENDENCIES: trace any KPI back to source table, transformation, and consumer."},
+        {"label": "Data Quality (DMFs)", "description": "Data Metric Functions: automated monitoring of freshness, null rates, duplicates -- 24/7, no external tools."},
+        {"label": "Time Travel + Recovery", "description": "AT(OFFSET)/BEFORE for point-in-time queries. CLONE/UNDROP for instant recovery. No backup infrastructure."}
+      ]
+    }
+  ]
+}
+```
 
-The theme selection also drives:
-- **Storytelling arc** (Step 4): the narrative thread emphasizes the selected themes
-- **Demo script** (S5): talking points lead with theme-aligned scenarios
-- **Demo flow order**: theme-aligned pages appear earlier in the recommended sequence
+**Question 4: Platform & Operations**
+
+```json
+{
+  "questions": [
+    {
+      "header": "Platform",
+      "question": "Which platform and operations features?",
+      "multiSelect": true,
+      "options": [
+        {"label": "Elastic Compute (Performance)", "description": "Cold/warm cache benchmarks on 10M+ rows. Warehouse auto-suspend, multi-cluster scaling."},
+        {"label": "Advanced Analytics (Window/PIVOT)", "description": "7-tab interactive dashboard with drill-down: regional, demographic, trend, skills gap, funnel analysis."},
+        {"label": "Architecture Overview", "description": "Clickable medallion architecture diagram. Executive-level platform map with live navigation."},
+        {"label": "Query Optimization", "description": "Result cache, partition pruning, ACCOUNT_USAGE analysis. Show zero-cost repeated queries."},
+        {"label": "Cost & Pricing Model", "description": "Pay-per-use credit model explainer. Compute + storage + cloud services breakdown."},
+        {"label": "Secure Data Sharing", "description": "Share data across accounts/orgs without copying. Marketplace listing, reader accounts."}
+      ]
+    }
+  ]
+}
+```
+
+### Feature-to-Page Mapping
+
+Each selected feature maps to one or more demo pages:
+
+| Feature | Demo page(s) |
+|---------|-------------|
+| Cortex Analyst (NL-to-SQL) | Ask {Customer} |
+| Cortex AI Functions | Cortex AI |
+| Cortex Agent (Agentic AI) | Cortex Agent |
+| ML Functions | ML/AI |
+| Document AI | Document AI |
+| Cortex Search (RAG) | Policy Intelligence |
+| Dynamic Tables | Dynamic Tables |
+| Tasks + Streams (CDC) | Tasks + Streams |
+| Snowpipe Streaming | Streaming |
+| Iceberg Tables | Iceberg Tables |
+| Geospatial (H3) | Analytics (H3 tab + MapLibre map) |
+| Snowflake Notebooks | Notebooks |
+| Dynamic Data Masking | Data Masking |
+| Data Classification | Data Classification |
+| Policy Intelligence (RAG) | Policy Intelligence |
+| Data Lineage | Lineage |
+| Data Quality (DMFs) | Quality |
+| Time Travel + Recovery | Time Travel + Recovery |
+| Elastic Compute | Performance |
+| Advanced Analytics | Analytics |
+| Architecture Overview | Architecture |
+| Query Optimization | Optimization |
+| Cost & Pricing Model | Pricing |
+| Secure Data Sharing | _(custom page -- not in catalog yet, flagged for S4 custom)_ |
+
+Features not in the catalog (like Secure Data Sharing) are flagged and can be built as custom pages in Session 4+.
+
+### How selections drive the rest of the flow
+
+- **Pages in Step 6**: only pages mapped to selected features are shown as RECOMMENDED
+- **Storytelling arc** (Step 4): narrative thread connects the selected features into a journey
+- **Demo script** (S5): talking points lead with feature-aligned scenarios
+- **Data generation**: only data columns needed for selected features are generated (e.g., no PII columns if masking not selected)
 
 ---
 
@@ -231,100 +323,29 @@ RECOMMENDED DEMO FLOW ({N} pages, ~{M} min):
 
 ---
 
-## Step 6: Capability Selection (Interactive — ask_user_question)
+## Step 6: Confirm Derived Page List (ask_user_question)
 
-Now present capabilities grouped by theme and let the user choose. **Split into multiple `ask_user_question` calls** to respect the 6-option limit per question:
+Based on the features selected in Step 3b, present the derived page list for confirmation. The user does NOT re-select pages -- they see what their feature choices produced and can adjust.
 
-**Question 1: Foundation & Analytics**
 ```json
 {
   "questions": [
     {
-      "header": "Foundation",
-      "question": "Select foundation and analytics capabilities to include:",
-      "multiSelect": true,
+      "header": "Pages",
+      "question": "Based on your feature selections, here are the demo pages that will be built:\n\nCore (Session 3):\n{list of core pages with feature mapping}\n\nAdvanced (Session 4):\n{list of advanced pages with feature mapping}\n\nTotal: {N} pages (~{N*3} min demo)\n\nWant to adjust?",
+      "multiSelect": false,
       "options": [
-        {"label": "Architecture Overview", "description": "Static clickable platform map"},
-        {"label": "Platform Overview", "description": "Unified data platform KPIs"},
-        {"label": "Performance at Scale", "description": "10M+ records in seconds"},
-        {"label": "Analytics Dashboards", "description": "7-tab drill-down + map"},
-        {"label": "ML & Predictive AI", "description": "Forecast, anomaly, classify"},
-        {"label": "Cortex AI (NLP)", "description": "Sentiment, summarize, translate"}
+        {"label": "Looks good", "description": "Proceed with these pages"},
+        {"label": "Add more features", "description": "Go back to feature selection and add more"},
+        {"label": "Remove some pages", "description": "I want fewer pages -- tell me which to cut"},
+        {"label": "Show the full catalog", "description": "Show me all available pages so I can pick manually"}
       ]
     }
   ]
 }
 ```
 
-**Question 2: Governance & Compliance**
-```json
-{
-  "questions": [
-    {
-      "header": "Governance",
-      "question": "Select governance and compliance capabilities:",
-      "multiSelect": true,
-      "options": [
-        {"label": "Data Masking", "description": "Column-level security / PII protection"},
-        {"label": "Data Classification", "description": "Auto-discover PII with SYSTEM$CLASSIFY"},
-        {"label": "Policy Intelligence", "description": "Cortex Search RAG over regulations"},
-        {"label": "Data Lineage", "description": "OBJECT_DEPENDENCIES graph"},
-        {"label": "Data Quality", "description": "Data Metric Functions dashboard"}
-      ]
-    }
-  ]
-}
-```
-
-**Question 3: Innovation & Operations**
-```json
-{
-  "questions": [
-    {
-      "header": "Innovation",
-      "question": "Select innovation and operations capabilities:",
-      "multiSelect": true,
-      "options": [
-        {"label": "Ask {Customer} (Cortex Analyst)", "description": "NL-to-SQL chatbot"},
-        {"label": "Cortex Agent", "description": "Multi-tool AI (Search + Analyst)"},
-        {"label": "Dynamic Tables", "description": "Declarative pipelines"},
-        {"label": "Streaming (Snowpipe)", "description": "Sub-second ingestion"},
-        {"label": "Tasks + Streams", "description": "CDC / event-driven pipelines"},
-        {"label": "Iceberg Tables", "description": "Open format, no lock-in"}
-      ]
-    }
-  ]
-}
-```
-
-**Question 4: Remaining** (only if not covered above)
-```json
-{
-  "questions": [
-    {
-      "header": "More",
-      "question": "Any additional capabilities?",
-      "multiSelect": true,
-      "options": [
-        {"label": "Time Travel", "description": "Point-in-time restore wizard"},
-        {"label": "Disaster Recovery", "description": "CLONE / UNDROP wizard"},
-        {"label": "Document AI", "description": "AI_PARSE_DOCUMENT extraction"},
-        {"label": "Notebooks", "description": "Data science workflow"},
-        {"label": "Query Optimization", "description": "Result cache + pruning"},
-        {"label": "Cost & Pricing", "description": "Credit consumption model"}
-      ]
-    }
-  ]
-}
-```
-
-**Important**: The options are dynamic — built from research findings:
-- Pages that map to discovered pain points → marked `✅ RECOMMENDED`
-- Pages that are MUST for the industry (from scenario-matrix) → marked `✅ RECOMMENDED`
-- Pages that would strengthen the story but weren't explicitly asked for → marked `🆕 SUGGESTED`
-- Pages that are low priority for this vertical → NOT shown (unless user asks for full list)
-
-The `multiSelect: true` lets the user check/uncheck freely.
+If "Show the full catalog" -- fall back to the page catalog in `references/demo-pages-catalog.md` and let the user pick pages directly (manual override).
 
 ---
 
