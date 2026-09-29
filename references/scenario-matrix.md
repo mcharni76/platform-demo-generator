@@ -1,37 +1,8 @@
 # Scenario Matrix
-| Document AI | MEDIUM | "Parse supplier invoices — extract line items, PO numbers automatically" | AP automation |
-| Cortex Agent | HIGH | "Category managers ask about both GDPR rules AND sales data" | Self-service |
-| Notebooks | MEDIUM | "Demand forecasters work in notebooks — live connection to order data" | Forecasting |
-| Iceberg Tables | MEDIUM | "Clickstream data in open format — accessible by marketing tools" | CDP |
-| Streaming | HIGH | "Real-time order events — inventory updates in sub-second" | Stock mgmt |
-| Tasks + Streams | HIGH | "Only stock-below-threshold events trigger replenishment orders" | Automation || Document AI | MEDIUM | "Parse customer contracts — extract terms, SLAs, renewal dates" | Contract mgmt |
-| Cortex Agent | HIGH | "NOC engineers ask about both regulations AND network performance" | Operations |
-| Notebooks | MEDIUM | "Churn modelers iterate in notebooks — connected to live CDR data" | Data science |
-| Iceberg Tables | HIGH | "CDR data in open format — query from Snowflake OR Spark without copies" | Data lake |
-| Streaming | MUST | "CDR ingestion at millions of events/second — real-time network monitoring" | Core workload |
-| Tasks + Streams | MUST | "Only network anomalies trigger incident creation — event-driven NOC" | Automation || Document AI | MEDIUM | "Parse safety inspection reports — extract findings automatically" | HSE compliance |
-| Cortex Agent | MEDIUM | "Engineers ask about both HSE regulations AND production data" | Operational |
-| Notebooks | MEDIUM | "Reservoir engineers run models in Snowflake — connected to live SCADA" | Engineering |
-| Iceberg Tables | HIGH | "Sensor data in open format — accessible by Spark, Databricks, Snowflake" | Data lake |
-| Streaming | MUST | "Real-time sensor ingestion — millions of readings per day, sub-second" | IoT/SCADA |
-| Tasks + Streams | MUST | "Only pressure anomalies trigger maintenance workflows — event-driven" | Predictive maintenance || Document AI | MUST | "Parse clinical notes, lab reports, referral letters — structured extraction" | Clinical docs |
-| Cortex Agent | HIGH | "Clinicians ask about both HIPAA rules AND patient data in one interface" | Multi-source |
-| Notebooks | HIGH | "Clinical data scientists build models in Snowflake — PHI never leaves" | Governance |
-| Iceberg Tables | MEDIUM | "Research data in open format — interoperable with external tools" | Multi-engine |
-| Streaming | MEDIUM | "Real-time vital signs ingestion from IoT devices" | Patient monitoring |
-| Tasks + Streams | MEDIUM | "Alert pipeline — only abnormal readings trigger downstream processing" | Clinical alerts || Document AI | MUST | "Parse invoices, contracts, KYC docs — extract structured data automatically" | Document volume |
-| Cortex Agent | HIGH | "Compliance officer asks about both regulations AND customer data in one chat" | Multi-source |
-| Notebooks | MEDIUM | "Risk modelers work in notebooks — connected to live data, governed" | Model development |
-| Iceberg Tables | HIGH | "Open format for multi-engine access — Spark + Snowflake on same data" | No lock-in |
-| Streaming | HIGH | "Real-time transaction monitoring — sub-second fraud detection pipeline" | Fraud detection |
-| Tasks + Streams | HIGH | "Only new transactions trigger risk scoring — zero wasted compute" | Cost efficiency || Document AI | MEDIUM | "Parse citizen documents — extract data without manual entry" | Form processing |
-| Cortex Agent | HIGH | "One AI interface for both regulations and citizen data" | Multi-source Q&A |
-| Notebooks | OPTIONAL | "Data analysts work in notebooks — inside Snowflake" | Analytics workflow |
-| Iceberg Tables | OPTIONAL | "Open format compliance for data sovereignty" | No lock-in |
-| Streaming | MEDIUM | "Real-time citizen service tracking — sub-second ingestion" | Service SLAs |
-| Tasks + Streams | MEDIUM | "Event-driven case processing — only new applications trigger workflows" | Automation |
+
 Maps industry verticals to prioritized Snowflake demo scenarios. Used by:
-- `sub-skills/plan/SKILL.md` — to assign pages to Session 3 (core) vs Session 4 (advanced)
+- `sub-skills/research/SKILL.md` — to recommend capabilities and build the storytelling arc
+- `sub-skills/plan/SKILL.md` — to assign selected pages to Session 3 (core) vs Session 4 (advanced)
 - `sub-skills/demo-script/SKILL.md` — to order scenarios and write industry-specific talking points
 - `sub-skills/generate/SKILL.md` — to determine which predefined questions to use in Ask {Name} and Policy Intelligence pages
 
@@ -45,8 +16,8 @@ Priority levels:
 
 ## Session Assignment
 
-### Always Session 3 (Core — 8 pages)
-Regardless of industry, these 8 pages are built in Session 3:
+### Default Session 3 (Core — recommended set)
+These pages form the default core set. The research sub-skill may adjust based on user selections:
 
 | Page | Rationale |
 |---|---|
@@ -59,12 +30,12 @@ Regardless of industry, these 8 pages are built in Session 3:
 | Data Quality | Governance — resonates with data teams |
 | Ask {Name} (Cortex Analyst) | AI differentiator — closes every demo |
 
-### Always Session 4 (Advanced — 9 pages)
-All advanced pages are built in Session 4. Industry drives their **demo order** in Session 5 (DEMO_SCRIPT.md), not whether they're built.
+### Session 4 (Advanced — from user selection)
+Advanced pages are built in Session 4. Only pages selected during the research phase are generated. Industry priority drives the **demo order** in DEMO_SCRIPT.md.
 
 | Page | Notes |
 |---|---|
-| Architecture | Always first in S4 — static page, quick to build |
+| Architecture | Static page, quick to build — often first |
 | ML & Predictive AI | |
 | Cortex AI (NLP) | |
 | Query Optimization | |
@@ -100,7 +71,7 @@ All advanced pages are built in Session 4. Industry drives their **demo order** 
 | Quality | HIGH | "Automated quality monitoring — 24/7" | Data integrity for decisions |
 | Dynamic Tables | MEDIUM | "Service KPIs refresh automatically — no pipeline code" | Reporting automation |
 | ML/AI | MEDIUM | "Predict service demand, detect anomalies in incident reports" | Operational forecasting |
-| Cortex AI | MEDIUM | "Sentiment analysis on citizen feedback in Arabic" | Arabic NLP (KSA relevant) |
+| Cortex AI | MEDIUM | "Sentiment analysis on citizen feedback in local language" | NLP in secondary language |
 | Optimization | OPTIONAL | "Pay only for what you run" | Budget justification |
 | Pricing | OPTIONAL | "Transparent cost model" | Budget justification |
 | Recovery | HIGH | "Zero-downtime recovery — no DBA needed" | Business continuity |
@@ -209,6 +180,49 @@ All advanced pages are built in Session 4. Industry drives their **demo order** 
 
 ---
 
+### Education (Universities / Training / Non-profit)
+
+| Scenario | Priority | Talking Point Theme | Why |
+|---|---|---|---|
+| Analytics | MUST | "Enrollment trends, program performance, regional impact — drill to student" | Core institutional analytics |
+| ML/AI | MUST | "Predict dropout risk, classify student segments, forecast enrollment" | Student success and retention |
+| Ask {Name} | MUST | "Program directors ask questions without SQL" | Self-service for non-technical staff |
+| Performance | HIGH | "Millions of enrollment records queried in seconds" | Scale of student data |
+| Dynamic Tables | HIGH | "Program KPIs refresh automatically — no manual reports" | Reporting automation |
+| Quality | HIGH | "Data quality on student records — catch duplicates and missing data" | Institutional reporting accuracy |
+| Cortex AI | MEDIUM | "Sentiment on student feedback — NLP built-in" | Student experience insights |
+| Time Travel | HIGH | "Reconstruct enrollment data as of any past date — audit compliance" | Accreditation audits |
+| Data Masking | MEDIUM | "Student IDs and grades masked for external reporting" | FERPA/privacy compliance |
+| Data Classification | MEDIUM | "Auto-classify student PII across all systems" | Privacy governance |
+| Policy Intelligence | OPTIONAL | "Ask any education policy question" | Regulatory guidance |
+| Lineage | MEDIUM | "Trace any published KPI back to source enrollment data" | Transparency |
+| Recovery | HIGH | "Zero-downtime recovery — no DBA needed" | Business continuity |
+
+**Lead scenario for Education**: Analytics → ML/AI → Ask {Name} → Dynamic Tables → Performance
+
+---
+
+### Logistics (Supply Chain / Shipping / Distribution)
+
+| Scenario | Priority | Talking Point Theme | Why |
+|---|---|---|---|
+| Performance | MUST | "10M+ shipment records queried in seconds" | Core operational workload |
+| Dynamic Tables | MUST | "Delivery KPIs and route metrics refresh automatically" | Real-time operations |
+| Analytics | MUST | "Route performance, warehouse utilization, delivery SLAs — drill to shipment" | Operations visibility |
+| Streaming | HIGH | "Real-time package tracking — sub-second location updates" | Customer experience |
+| Tasks + Streams | HIGH | "Only delayed shipments trigger escalation workflows" | Exception-based processing |
+| ML/AI | HIGH | "Predict delivery delays, optimize routes, detect anomalies" | Operational efficiency |
+| Quality | HIGH | "Data quality on shipment data — catch address errors before dispatch" | Delivery accuracy |
+| Ask {Name} | MUST | "Operations managers ask questions without SQL" | Self-service analytics |
+| Optimization | MEDIUM | "Result cache means repeated route queries cost zero" | Cost efficiency |
+| Data Masking | MEDIUM | "Customer addresses masked for analytics teams" | Privacy compliance |
+| Lineage | MEDIUM | "Trace any delivery KPI back to source tracking data" | Audit trail |
+| Time Travel | MEDIUM | "Reconstruct shipment state at any historical point — dispute resolution" | Claims management |
+
+**Lead scenario for Logistics**: Performance → Dynamic Tables → Analytics → Streaming → ML/AI
+
+---
+
 ## Predefined Questions by Vertical (for Ask {Name} page)
 
 ### Government
@@ -281,4 +295,28 @@ Which store locations have the highest inventory turnover?
 How did customer acquisition change year over year?
 What percentage of customers are in the loyalty program?
 Show me the top 10 best-selling products this year.
+```
+
+### Education
+```
+How many students enrolled in each program this semester?
+What is the average GPA by program and year level?
+Which programs have the highest dropout rate?
+How many students completed their program within the expected duration?
+What is the year-over-year trend in new enrollments?
+Show me the top 5 programs by student satisfaction score.
+How many scholarship recipients are currently enrolled?
+Which regions have the highest number of applicants?
+```
+
+### Logistics
+```
+How many shipments were delivered on time last month?
+What is the average delivery time by region?
+Which routes have the highest delay rate?
+Show me warehouses with inventory utilization above 90%.
+How did shipment volume change quarter over quarter?
+What percentage of deliveries required re-routing?
+Which carriers have the highest on-time delivery rate?
+Show me the top 10 customers by shipment volume this year.
 ```

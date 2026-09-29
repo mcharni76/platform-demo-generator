@@ -1,6 +1,6 @@
 # Demo Pages Catalog
 
-Full catalog of all 23 pages in the Platform Demo. Each row defines: page ID, React file, Snowflake feature, backend endpoints, required tables, business benefit, demo talking point template, and session assignment.
+Capability catalog for the Platform Demo. Each page defines a Snowflake feature, backend endpoints, required tables, business benefit, and demo talking points. Pages are selected per customer during the research phase — not all pages are built for every demo.
 
 ---
 
@@ -119,8 +119,8 @@ Full catalog of all 23 pages in the Platform Demo. Each row defines: page ID, Re
 | **Snowflake Feature** | Cortex AI Functions (SENTIMENT, SUMMARIZE, TRANSLATE, CLASSIFY) |
 | **Backend Endpoints** | `GET /api/cortex-ai/sentiment`, `/summarize`, `/translate`, `/classify`, `/all` |
 | **Required Tables** | Text/feedback entity with multilingual content |
-| **Business Benefit** | 5 independent NLP cards; Arabic text processing built-in |
-| **Special** | Arabic text in demo data. RTL rows. For non-Arabic customers: translate → summarize → classify + sentiment flow. |
+| **Business Benefit** | 5 independent NLP cards; multilingual text processing built-in |
+| **Special** | Secondary language text in demo data. RTL handling for ar/fa/ur. For non-bilingual customers: translate → summarize → classify + sentiment flow. |
 | **Demo Hook** | "No NLP library, no Python, no external service — sentiment analysis, translation, summarization in one SQL function." |
 
 ---
@@ -256,7 +256,7 @@ Full catalog of all 23 pages in the Platform Demo. Each row defines: page ID, Re
 | **Required Tables** | 4-6 primary domain entities (semantic model tables) |
 | **Required File** | `{slug}_semantic_model.yaml` on stage |
 | **Business Benefit** | Any business user can query data in plain language — no SQL, no BI tool |
-| **Special** | Full-height NCIM chatbot. EN/AR toggle (RTL flip). 8 predefined question grid. Conversation history. Timing bubbles. Interpretation panel. Suggestions. Semantic model auto-uploaded to stage on startup. |
+| **Special** | Full-height NCIM chatbot. EN/{secondary_lang} toggle (RTL flip for ar/fa/ur). 8 predefined question grid. Conversation history. Timing bubbles. Interpretation panel. Suggestions. Semantic model auto-uploaded to stage on startup. |
 | **Demo Hook** | "No SQL, no BI tool — just ask '{domain-specific question}' and get an answer with the SQL that generated it." |
 
 ---

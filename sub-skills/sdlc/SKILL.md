@@ -52,7 +52,7 @@ Create `/memories/{slug}-demo-project.md` with:
 - Slug: {slug}
 - Country: {country}
 - Industry: {industry}  ← filled after research
-- Language: {en | en+ar}
+- Language: {en | en+ar | en+fr | en+tr | en+fa | en+ur}
 - Website: {website_url}
 - Brand Color: {brand_color}
 - Regulatory Context: {PDPL | GDPR | HIPAA | Generic}  ← filled after research
@@ -312,9 +312,9 @@ Session 0 has no handover doc and no "previous session to summarize". The S0 clo
 
 No handover document is created for S0 (nothing was built).
 
-### Session 5 Edge Case (Local-complete session — SPCS is optional next)
+### Session 5 Edge Case (Local-complete session — deployment is optional next)
 
-If the user chose "Local only" or "Later" for SPCS at end of S5, output a **DEMO READY** block instead of a next-session prompt:
+If the user chose "Local only" or "Later" for deployment at end of S5, output a **DEMO READY** block instead of a next-session prompt:
 
 ~~~
 ========================================
@@ -339,12 +339,13 @@ KEY DOCUMENTS:
 TOP SCENARIOS TO LEAD WITH:
 {list top 3 scenarios from DEMO_SCRIPT.md with one-line hook each}
 
-SPCS DEPLOYMENT (optional — run Session 6 anytime later):
-  Paste: "Deploy the {slug} demo to SPCS"
+DEPLOYMENT (optional — run Session 6 anytime later):
+  App Runtime (recommended): "Deploy the {slug} demo to App Runtime"
+  SPCS (legacy):             "Deploy the {slug} demo to SPCS"
 ========================================
 ~~~
 
-If the user chose "Yes, deploy to SPCS", generate a next-session prompt for S6 as normal.
+If the user chose "App Runtime" or "SPCS", generate a next-session prompt for S6 as normal.
 
 ---
 

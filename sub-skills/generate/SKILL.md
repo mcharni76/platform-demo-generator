@@ -3,11 +3,47 @@ name: platform-demo-generate
 description: "Project scaffolding for platform demo generation. Invoked once per session (S1-S5). Generates files scoped to the current session using MISK as the structural template."
 ---
 
-# Generate — Project Scaffolding
+# Generate -- Project Scaffolding
 
-This sub-skill is invoked at the start of Sessions 1–5 (after loading the SDLC sub-skill). It generates files for the current session only — never all sessions at once.
+This sub-skill is invoked at the start of Sessions 1-5 (after loading the SDLC sub-skill). It generates files for the current session only -- never all sessions at once.
 
 Read `references/misk-architecture.md` before generating any file. It contains the full MISK structural reference including critical patterns, gotchas, and exact file content to adapt.
+
+---
+
+## Interactive Flow (MANDATORY)
+
+Every session follows this pattern. Do not skip any interactive step.
+
+```
+ANNOUNCE what will be generated (list files)
+  → GENERATE files in batches
+    → CHECKPOINT: show what was created, ask user to confirm
+      → VERIFY: run smoke check (compile, start, build)
+        → COMMIT + report
+```
+
+At each checkpoint, use `ask_user_question`:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Progress",
+      "question": "{description of what was just generated}\n\nFiles created:\n- {file1}\n- {file2}\n\n{any notes about key decisions made}\n\nHow should I proceed?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Continue", "description": "Looks good, proceed to the next batch"},
+        {"label": "Show me a file", "description": "I want to review a specific file before continuing"},
+        {"label": "Adjust something", "description": "I want to change something before moving on"}
+      ]
+    }
+  ]
+}
+```
+
+If "Show me a file" -- ask which file, display it, then re-ask.
+If "Adjust something" -- ask what to change, make the edit, then re-ask.
 
 ---
 
@@ -35,7 +71,7 @@ Apply these substitutions across ALL generated files:
 | `misk-images` (image repo) | `{slug}-images` |
 | `MISK_POOL` (compute pool) | `{SLUG}_POOL` |
 | Entity names (BENEFICIARIES, ENROLLMENTS, PROGRAMS, etc.) | Domain entities from `references/data-domain-templates.md` |
-| `labelAr` fields | Keep if `language: en+ar`, remove if `language: en` |
+| `labelAr` fields | Generalize to `label{Lang}` (e.g. `labelFr`, `labelTr`). Keep if bilingual, remove if `language: en` |
 | `ask-misk` | `ask-{slug}` |
 | `Ask MISK` | `Ask {display_name}` |
 | Port 8200 (backend) | Keep 8200 |
@@ -129,6 +165,48 @@ git add .
 git commit -m "chore: S1 infrastructure scaffolding — {slug}"
 ```
 
+### S1 Checkpoint: Review config + deploy scripts (ask_user_question)
+
+After generating all S1 files, present a summary:
+
+```json
+{
+  "questions": [
+    {
+      "header": "S1 Review",
+      "question": "Infrastructure generated:\n\n- config.toml: database={SLUG}_DEMO, warehouse={SLUG}_DEMO_WH\n- 7 deploy scripts (RBAC, DDL with {N} tables, stage, ML, DTs, grants, teardown)\n- deploy.py orchestrator + load_data.py\n- .gitignore + docker-compose.yml\n\nKey decisions:\n- {N} domain tables based on {industry} vertical\n- Warehouse size: MEDIUM (auto-suspend 120s)\n- RBAC: 3 roles (deploy, app, reader)\n\nWant to review any file or adjust before I commit?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Commit and proceed", "description": "Everything looks right, commit S1"},
+        {"label": "Show config.toml", "description": "Review the project configuration"},
+        {"label": "Show DDL", "description": "Review the table definitions (02_ddl.sql)"},
+        {"label": "Adjust something", "description": "I need to change a setting"}
+      ]
+    }
+  ]
+}
+```
+
+After S1 commit, propose data generation:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Data",
+      "question": "Infrastructure is committed. Next step: generate synthetic seed data. Run data generation now?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Yes, generate data now", "description": "I'll walk you through entity names, regions, and scale"},
+        {"label": "Skip for now", "description": "I'll generate data later (before S2 deploy)"}
+      ]
+    }
+  ]
+}
+```
+
+If "Yes" -- load `sub-skills/data-gen/SKILL.md` and run the interactive data generation flow.
+
 ---
 
 ## Session 2 — Backend
@@ -168,9 +246,45 @@ git add backend/
 git commit -m "feat: S2 backend API — {slug}"
 ```
 
+### S2 Checkpoint: Verify backend starts + test endpoints (ask_user_question)
+
+After generating backend, start the server and test:
+
+```bash
+cd {target_path}/backend
+uv sync
+SNOWFLAKE_CONNECTION_NAME={connection_name} uv run uvicorn app.main:app --port 8200 &
+sleep 5
+curl -f http://localhost:8200/api/health
+curl -s http://localhost:8200/api/platform/kpis | python -m json.tool | head -20
+kill %1
+```
+
+Present results to user:
+
+```json
+{
+  "questions": [
+    {
+      "header": "S2 Verify",
+      "question": "Backend verification:\n\n- Health check: {PASS/FAIL}\n- /api/platform/kpis: {PASS/FAIL} ({N} rows, {time}ms)\n- Cortex Search seed: {seeded N docs / skipped}\n- Semantic model: {generated / deferred to S4}\n\nEndpoints generated: {N} across {M} page groups.\n\nReady to proceed to frontend?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Proceed to S3", "description": "Backend is working, start frontend core"},
+        {"label": "Show endpoint list", "description": "List all generated endpoints"},
+        {"label": "Test more endpoints", "description": "Run additional smoke tests"},
+        {"label": "Fix an issue", "description": "Something is broken, help me debug"}
+      ]
+    }
+  ]
+}
+```
+
 ---
 
-## Session 3 — Frontend Core (8 pages)
+## Session 3 — Frontend Core (selected pages)
+
+**Important**: Only generate pages listed in `selected_pages.core` from the research context. If a page was deselected during research, skip it entirely (no file, no endpoint, no route).
 
 ### Package files
 Generate `package.json`, `vite.config.ts`, `tailwind.config.js`, `nginx.conf` from MISK equivalents with substitution map applied.
@@ -185,11 +299,11 @@ colors: {
 ```
 
 ### `frontend/src/lib/scenarios.ts`
-Generate the `SCENARIOS` array with:
-- All 17 page IDs defined in `references/demo-pages-catalog.md`
-- Labels adapted to domain (e.g. `"Data Platform Overview"` not `"MISK Data Platform Overview"`)
-- `labelAr` fields: include if `language: en+ar`, omit if `language: en`
+Generate the `SCENARIOS` array with only the selected pages from `selected_pages.core` and `selected_pages.advanced`:
+- Page IDs and labels adapted to domain
+- `label{Lang}` fields: include secondary language labels if bilingual (`en+ar` → `labelAr`, `en+fr` → `labelFr`, etc.), omit if `language: en`
 - `snowflakeFeature` and `businessBenefit` adapted to domain
+- Only include entries for pages that were selected during research
 
 ### Shared components (copy with substitution map):
 - `Header.tsx` — replace MISK logo reference with `{slug}-logo` + update title
@@ -205,7 +319,9 @@ Generate the `SCENARIOS` array with:
 For each page, adapt from MISK equivalent:
 - Replace all MISK entity names with domain entity names
 - Adapt KPI labels, chart titles, and business scenario text to domain
-- Replace Arabic business scenario text if `language: en` (remove AR-only blocks)
+- Replace secondary language business scenario text if `language: en` (remove bilingual blocks)
+- For RTL languages (ar, fa, ur): add `dir="rtl"` + appropriate font class
+- For LTR languages (fr, tr, pt): add translated labels, no RTL handling needed
 - Keep all UX patterns identical: explicit Load buttons, tab cache, wizard steps, NCIM cards
 
 **Commit after each page:**
@@ -213,11 +329,45 @@ For each page, adapt from MISK equivalent:
 git commit -m "feat: add Page{Name} — {slug}"
 ```
 
+### S3 Checkpoint: Preview in browser (ask_user_question)
+
+After generating all core pages, start both servers for a live preview:
+
+```bash
+# Terminal 1: Backend
+cd {target_path}/backend
+SNOWFLAKE_CONNECTION_NAME={connection_name} uv run uvicorn app.main:app --port 8200 &
+
+# Terminal 2: Frontend
+cd {target_path}/frontend
+npm install && npm run dev &
+```
+
+```json
+{
+  "questions": [
+    {
+      "header": "S3 Preview",
+      "question": "Core pages generated and running at http://localhost:5300\n\nPages built:\n{list of core pages with status}\n\nOpen the browser and check:\n1. Sidebar shows all pages\n2. Platform page loads KPIs on button click\n3. Analytics tabs switch without re-fetching\n4. Ask {display_name} page shows question grid\n\nHow does it look?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Looks good, commit S3", "description": "All pages working, proceed"},
+        {"label": "A page has an issue", "description": "I'll describe what's wrong"},
+        {"label": "Styling needs adjustment", "description": "Colors, layout, or text need tweaking"},
+        {"label": "Show me the page list", "description": "Remind me which pages were built"}
+      ]
+    }
+  ]
+}
+```
+
+If any issues -- fix them before committing. Do not leave S3 with broken pages.
+
 ---
 
-## Session 4 — Frontend Advanced (9 pages)
+## Session 4 — Frontend Advanced (selected pages)
 
-Same approach as Session 3. Additionally:
+Same approach as Session 3. **Only generate pages listed in `selected_pages.advanced` from the research context.** Skip any page the user did not select. Additionally:
 
 ### `PageArchitecture.tsx` — Special handling (static page)
 This page has no backend calls. Generate the `LAYERS` array by:
@@ -249,6 +399,28 @@ tables:
 **Commit after completing advanced pages:**
 ```bash
 git commit -m "feat: S4 frontend-advanced — {slug}"
+```
+
+### S4 Checkpoint: Full page inventory review (ask_user_question)
+
+After S4, the full demo is built. Present the complete page inventory:
+
+```json
+{
+  "questions": [
+    {
+      "header": "S4 Review",
+      "question": "All selected pages are now built.\n\n| # | Page | Session | Status |\n|---|------|---------|--------|\n{full page table with build status}\n\nTotal: {N} pages ({core} core + {advanced} advanced)\n\nSemantic model: {slug}_semantic_model.yaml generated with {N} tables.\n\nOpen http://localhost:5300 and navigate through the pages.\n\nReady for S5 (polish + demo pack)?",
+      "multiSelect": false,
+      "options": [
+        {"label": "All pages work, proceed to S5", "description": "Ready for polish, docs, and demo script"},
+        {"label": "A page needs fixing", "description": "I found an issue on a specific page"},
+        {"label": "Run full validation", "description": "Run the validate sub-skill for a thorough check"},
+        {"label": "Add another page", "description": "I want to include a page I didn't select earlier"}
+      ]
+    }
+  ]
+}
 ```
 
 ---
@@ -309,7 +481,7 @@ Load `sub-skills/demo-script/SKILL.md` and generate talking points.
 git commit -m "docs: S5 local verification + README + DEMO_SCRIPT — {slug}"
 ```
 
-### End of S5: Propose SPCS
+### End of S5: Propose Deployment
 
 After S5 is complete and the demo runs locally, ask the user:
 
@@ -317,26 +489,165 @@ After S5 is complete and the demo runs locally, ask the user:
 {
   "questions": [
     {
-      "header": "SPCS Deploy",
-      "question": "The demo is working locally. Would you like to port it to SPCS for a shareable public URL?",
+      "header": "Deploy",
+      "question": "The demo is working locally. How would you like to deploy it?",
       "type": "options",
       "multiSelect": false,
       "options": [
-        {"label": "Yes, deploy to SPCS", "description": "I'll generate Dockerfiles, SPCS spec, and deploy script (Session 6)"},
+        {"label": "App Runtime (recommended)", "description": "Deploy as a Next.js app via snow app deploy — no Docker, no compute pool, live URL in minutes"},
+        {"label": "SPCS (legacy)", "description": "Deploy as Docker multi-container service on SPCS — requires Docker Desktop + compute pool"},
         {"label": "No, local is enough", "description": "Keep it local-only — demo from laptop via localhost"},
-        {"label": "Later", "description": "Skip for now, I can always run Session 6 later"}
+        {"label": "Later", "description": "Skip for now, I can always deploy later"}
       ]
     }
   ]
 }
 ```
 
-If "Yes" → generate next-session prompt for S6.
+If "App Runtime" → generate next-session prompt for S6 (App Runtime path).
+If "SPCS" → generate next-session prompt for S6 (SPCS legacy path).
 If "No" or "Later" → output DEMO READY block (no S6 prompt).
 
 ---
 
-## Session 6 — SPCS Deploy (optional)
+## Session 6a -- App Runtime Deploy (recommended)
+
+Only run if the user chose "App Runtime" during S5 or explicitly requests it.
+
+App Runtime deploys a Next.js app directly to Snowflake -- no Docker for the frontend, no compute pool, live URL in minutes. The app runs inside Snowflake's security perimeter with SSO and RBAC.
+
+### Architecture: FastAPI backend (SPCS) + React frontend (App Runtime)
+
+The FastAPI backend is kept as-is and deployed as an SPCS service (single container, no frontend). The React frontend is wrapped in a minimal Next.js shell and deployed via App Runtime. The Next.js app proxies API calls to the SPCS backend endpoint.
+
+```
+[User Browser] --> [App Runtime: Next.js frontend] --> [SPCS: FastAPI backend] --> [Snowflake]
+```
+
+### Step 1: Create Next.js wrapper for the React frontend
+
+Generate a Next.js project that serves the existing React pages and proxies `/api/*` calls to the SPCS backend:
+
+```
+{target_path}/app-runtime/
+  app.yml                    # App Runtime manifest
+  next.config.js             # rewrites /api/* to SPCS backend URL
+  package.json
+  src/                       # symlink or copy from frontend/src
+  public/                    # static assets
+```
+
+`next.config.js`:
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: process.env.BACKEND_URL
+          ? `${process.env.BACKEND_URL}/api/:path*`
+          : 'http://localhost:8200/api/:path*',
+      },
+    ];
+  },
+};
+module.exports = nextConfig;
+```
+
+### Step 2: Deploy FastAPI backend to SPCS (single container)
+
+Use the same `backend/Dockerfile` from the SPCS legacy path (Session 6b below), but deploy only the backend -- no frontend container, no nginx proxy.
+
+```bash
+# Build and push backend image only
+cd {target_path}/backend
+docker build --platform linux/amd64 -t {slug}-backend:latest .
+docker tag {slug}-backend:latest <registry>/{slug}-backend:latest
+docker push <registry>/{slug}-backend:latest
+
+# Create single-container SPCS service for backend
+```
+
+The SPCS spec is simpler -- just the backend container:
+```yaml
+spec:
+  containers:
+    - name: backend
+      image: /{SLUG}_DEMO/{DOMAIN}_DATA/{SLUG}_IMAGES/{slug}-backend:latest
+      env:
+        SNOWFLAKE_ACCOUNT: {{{{id.name}}}}
+        SNOWFLAKE_HOST: {{{{id.name}}}}.snowflakecomputing.com
+      readinessProbe:
+        port: 8200
+        path: /api/health
+  endpoints:
+    - name: backend
+      port: 8200
+      public: true
+```
+
+### Step 3: Deploy frontend via App Runtime
+
+`app.yml`:
+```yaml
+version: 2
+
+name: {SLUG}_DEMO_APP
+database: SNOWFLAKE_APPS
+schema: PUBLIC
+query_warehouse: {SLUG}_DEMO_WH
+
+env:
+  BACKEND_URL: https://<spcs-backend-endpoint>
+
+ignore:
+  - node_modules
+  - .env*
+  - .next
+  - .git
+```
+
+```bash
+cd {target_path}/app-runtime
+snow app setup --app-name {SLUG}_DEMO_APP
+snow app deploy
+snow app open
+```
+
+### Step 4: Share with roles
+
+```sql
+GRANT USAGE ON DATABASE SNOWFLAKE_APPS TO ROLE {SLUG}_APP_ROLE;
+GRANT USAGE ON SCHEMA SNOWFLAKE_APPS.PUBLIC TO ROLE {SLUG}_APP_ROLE;
+GRANT USAGE ON APPLICATION SERVICE SNOWFLAKE_APPS.PUBLIC.{SLUG}_DEMO_APP TO ROLE {SLUG}_APP_ROLE;
+```
+
+### Key Differences from Full SPCS
+
+| Aspect | App Runtime + SPCS backend | Full SPCS |
+|--------|---------------------------|-----------|
+| Docker required | Backend only | Both containers |
+| Frontend deploy | `snow app deploy` (minutes) | Docker build + push (10+ min) |
+| Frontend auth | Snowflake SSO built-in | Token flow via SPCS ingress |
+| Frontend rebuild | Seconds (no Docker) | Minutes (Docker rebuild) |
+| Backend | Same SPCS service | Same SPCS service |
+| nginx proxy | Not needed (Next.js rewrites) | Required |
+
+### Limitations
+
+- App Runtime is Node.js/Next.js only -- the FastAPI backend still requires SPCS
+- Not available on trial accounts or government regions
+- Backend SPCS endpoint URL must be known before frontend deploy
+
+**Commit after App Runtime deploy:**
+```bash
+git commit -m "feat: S6 App Runtime frontend + SPCS backend — {slug}"
+```
+
+---
+
+## Session 6b — SPCS Deploy (legacy)
 
 Only run if the user opted in during S5 or explicitly requests SPCS later.
 

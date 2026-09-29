@@ -9,11 +9,14 @@ This sub-skill runs at the end of Session 0, after intake and research are compl
 
 ---
 
-## Step 1: Load Scenario Matrix
+## Step 1: Load Selected Pages from Research Context
 
-Read `references/scenario-matrix.md` to determine which pages go in Session 3 (core) vs Session 4 (advanced) based on `{industry}` from the research context.
+Read the research context block (produced by the research sub-skill) to get `selected_pages.core` and `selected_pages.advanced`. These lists drive what gets built in S3 and S4.
 
-**Session 3 Core Pages (always included — 8 pages):**
+Read `references/scenario-matrix.md` to validate the selection against `{industry}` priorities.
+
+**Session 3 Core Pages (from research selection — typically 8 pages):**
+The research sub-skill recommends a core set based on universal value. The default core set is:
 - Platform Overview
 - Performance at Scale
 - Analytics Dashboards
@@ -23,8 +26,11 @@ Read `references/scenario-matrix.md` to determine which pages go in Session 3 (c
 - Data Quality
 - Ask {CustomerName} (Cortex Analyst chatbot)
 
-**Session 4 Advanced Pages (industry-driven priority — all 15 included, order varies):**
-- Platform Architecture (static — always first in S4)
+If the user deselected any core pages during research, respect that selection.
+
+**Session 4 Advanced Pages (from research selection — varies by customer):**
+Only pages the user selected during the research capability selection step are included. Available advanced pages:
+- Platform Architecture (static — always first in S4 if selected)
 - ML & Predictive AI
 - Cortex AI (NLP functions)
 - Query Optimization
@@ -79,10 +85,10 @@ Write `{target_path}/docs/PLAN.md` with the full session breakdown:
 | S0 | Planning | This session | PLAN.md, memory file, project skeleton |
 | S1 | Infrastructure | config + SQL deploy | config.toml, 7 deploy scripts, deploy.py, load_data.py |
 | S2 | Backend | API layer | session.py, main.py (all endpoints + Cortex Search seed) |
-| S3 | Frontend Core | 8 pages | scenarios.ts, shared components, core pages |
-| S4 | Frontend Advanced | 9 pages + semantic model | Advanced pages, {slug}_semantic_model.yaml |
+| S3 | Frontend Core | {N_core} pages | scenarios.ts, shared components, selected core pages |
+| S4 | Frontend Advanced | {N_advanced} pages + semantic model | Selected advanced pages, {slug}_semantic_model.yaml |
 | S5 | Polish + Demo Pack | Local run verified | README, ARCHITECTURE.md, DEMO_SCRIPT.md |
-| S6 | SPCS Deploy _(optional)_ | Port to Snowflake | Dockerfiles, SPCS spec, deploy script |
+| S6 | Deploy _(optional)_ | Port to Snowflake | App Runtime (snow app deploy) or SPCS (Docker) |
 
 ## Session 1 — Infrastructure
 Files to create:
@@ -105,7 +111,7 @@ Files to create:
 - backend/pyproject.toml
 - backend/Dockerfile
 - backend/app/session.py
-- backend/app/main.py  (all endpoints for 23 pages + Cortex Search seed)
+- backend/app/main.py  (endpoints for selected pages + Cortex Search seed)
 
 ## Session 3 — Frontend Core
 Files to create:
@@ -113,11 +119,11 @@ Files to create:
 - frontend/src/lib/api.ts, scenarios.ts
 - frontend/src/App.tsx
 - frontend/src/components/shared/ (Header, Sidebar, HeroSection, SqlPreviewButton, DataPreview, FeatureBadge, QueryTimeBadge, PanelCard)
-- frontend/src/components/pages/ (8 core pages: PagePlatform, PagePerformance, PageAnalytics, PageTimeTravel, PageRecovery, PageLineage, PageQuality, PageAsk{Name})
+- frontend/src/components/pages/ (selected core pages from research: {core_page_list})
 
 ## Session 4 — Frontend Advanced
 Files to create:
-- frontend/src/components/pages/ (15 advanced pages: PageArchitecture, PageMLAI, PageCortexAI, PageOptimization, PagePricing, PageDynamicTables, PageDataMasking, PageDataClassification, PagePolicyIntelligence, PageDocumentAI, PageCortexAgent, PageNotebooks, PageIcebergTables, PageStreaming, PageTasksStreams)
+- frontend/src/components/pages/ (selected advanced pages from research: {advanced_page_list})
 - backend/app/semantic_model/{slug}_semantic_model.yaml
 
 ## Session 5 — Polish + Demo Pack
@@ -132,8 +138,13 @@ Verify:
 - All selected pages load without errors
 - Key endpoints return data
 
-## Session 6 — SPCS Deploy _(optional — only if deployment_mode != local_only)_
-Files to create:
+## Session 6 — Deploy _(optional — only if deployment_mode != local_only)_
+App Runtime path (recommended):
+- app.yml (App Runtime manifest)
+- Next.js API routes (ported from FastAPI)
+- lib/snowflake.ts (data access)
+
+SPCS legacy path:
 - backend/Dockerfile
 - frontend/Dockerfile + nginx.conf
 - spcs/01_infra.sql
@@ -152,16 +163,16 @@ Regulatory: {regulation} → Policy Intelligence docs will cover {regulation} ar
 
 Use the `create_plan` tool to present the multi-session breakdown to the user. The plan overview should be:
 
-> "5-session plan to build a {industry} Snowflake Platform Demo for {customer_name}. Covers 17 interactive pages, FastAPI backend, React/Vite frontend, SPCS deployment, and a DEMO_SCRIPT.md with prioritized {industry}-specific talking points."
+> "5-session plan to build a {industry} Snowflake Platform Demo for {customer_name}. Covers {N_total} interactive pages selected from the capability catalog, FastAPI backend, React/Vite frontend, SPCS deployment, and a DEMO_SCRIPT.md with prioritized {industry}-specific talking points."
 
 The tasks for the `create_plan` tool should be:
 1. S0 Planning — Create project skeleton, memory file, PLAN.md ← in_progress
-2. S1 Infrastructure — config.toml + 7 deploy SQL scripts
-3. S2 Backend — FastAPI main.py (50+ endpoints) + Cortex Search seed
-4. S3 Frontend Core — 8 core pages + shared components
-5. S4 Frontend Advanced — 15 advanced pages + semantic model
+2. S1 Infrastructure — config.toml + deploy SQL scripts
+3. S2 Backend — FastAPI main.py (endpoints for selected pages) + Cortex Search seed
+4. S3 Frontend Core — {N_core} selected core pages + shared components
+5. S4 Frontend Advanced — {N_advanced} selected advanced pages + semantic model
 6. S5 Polish + Demo Pack — Local verification + README + DEMO_SCRIPT.md
-7. S6 SPCS Deploy _(optional)_ — Dockerfiles + SPCS spec + deploy script
+7. S6 Deploy _(optional)_ — App Runtime (snow app deploy) or SPCS (Docker)
 
 ---
 

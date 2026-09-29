@@ -205,13 +205,14 @@ Each card is fully independent:
 // Input/Output split: left = SQL/config, right = result
 ```
 
-### Bilingual Toggle (en+ar only)
+### Bilingual Toggle (any secondary language)
 ```typescript
-const [isRtl, setIsRtl] = useState(false)
+const [isSecondaryLang, setIsSecondaryLang] = useState(false)
+const isRtl = ['ar', 'fa', 'ur'].includes(secondaryLang) && isSecondaryLang
 // Wrap page: <div dir={isRtl ? 'rtl' : 'ltr'}>
-// Arabic text: className="font-arabic" (Noto Sans Arabic)
-// Send icon: rotate 180deg in RTL mode
-// Toggle button in header
+// RTL languages (ar, fa, ur): add font class + rotate send icon in RTL mode
+// LTR languages (fr, tr, pt): translated labels only, no dir change
+// Toggle button in header shows EN / {secondary_lang_code}
 ```
 
 ### Architecture Page (fully static — no API)

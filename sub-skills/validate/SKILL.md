@@ -145,32 +145,31 @@ Check:
 
 ---
 
-## Step 7: Produce Validation Report
+## Step 7: Interactive Validation Report (ask_user_question)
 
-Output a summary table:
+Output the summary table, then ask the user how to proceed:
 
-```markdown
-# Validation Report — {customer_name} ({slug})
-**Date**: {today}
-**Session validated after**: S{N}
-
-| Check | Status | Notes |
-|-------|--------|-------|
-| SQL compilation | ✅/❌ | {details} |
-| Backend startup | ✅/❌ | {details} |
-| Frontend build | ✅/❌ | {details} |
-| API smoke test | ✅/❌ | {N}/{total} endpoints OK |
-| Semantic model | ✅/❌/⏭️ | {details or "not yet generated"} |
-| SPCS spec | ✅/❌/⏭️ | {details or "not yet generated"} |
-
-## Issues Found
-{list any issues with recommended fixes}
-
-## Verdict
-{PASS — ready for next session | BLOCKED — fix issues before proceeding}
+```json
+{
+  "questions": [
+    {
+      "header": "Validation",
+      "question": "Validation Report -- {customer_name} ({slug})\n\n| Check | Status | Notes |\n|-------|--------|-------|\n| SQL compilation | {status} | {details} |\n| Backend startup | {status} | {details} |\n| Frontend build | {status} | {details} |\n| API smoke test | {status} | {N}/{total} endpoints OK |\n| Semantic model | {status} | {details} |\n\nVerdict: {PASS / N issues found}\n\nHow should I proceed?",
+      "multiSelect": false,
+      "options": [
+        {"label": "All good, continue", "description": "No issues to fix"},
+        {"label": "Fix the issues", "description": "Walk me through fixing each failure"},
+        {"label": "Show details", "description": "Show the full error output for failures"},
+        {"label": "Skip for now", "description": "I'll fix these later"}
+      ]
+    }
+  ]
+}
 ```
 
-Write to `{target_path}/docs/VALIDATION_S{N}.md`.
+If "Fix the issues" -- for each failure, diagnose the root cause, propose a fix, apply it, and re-validate. Repeat until all checks pass or user says to skip.
+
+Write the full report to `{target_path}/docs/VALIDATION_S{N}.md`.
 
 ---
 

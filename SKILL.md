@@ -1,15 +1,14 @@
 ---
 name: platform-demo-generator
 title: Platform Demo Builder
-summary: Generate a full 23-page Snowflake Platform Demo for any customer in 5 structured sessions.
+summary: Generate a customized Snowflake Platform Demo for any customer in 5 structured sessions.
 description: |
-  Build a production-quality Snowflake Platform Demo customized per customer: 23 interactive pages
-  (Architecture, Platform, Performance, Analytics, ML/AI, Time Travel, Recovery, Cortex AI, Lineage,
-  Quality, Optimization, Pricing, Dynamic Tables, Policy Intelligence with Cortex Search, Data Masking,
-  Data Classification, Ask [Customer] Cortex Analyst, Document AI, Cortex Agent, Notebooks,
-  Iceberg Tables, Snowpipe Streaming, Tasks + Streams). FastAPI backend, React/Vite frontend,
-  SPCS-deployable. Enforces SDLC: plan-first, multi-session boundaries, git commit per feature,
-  memory persistence, and auto-generated next-session prompt. Proven on NCIM, IMSU, and MISK projects.
+  Build a production-quality Snowflake Platform Demo customized per customer. Pages are selected
+  dynamically based on customer industry, pain points, and use case requirements — drawn from a
+  catalog of capabilities covering compute, governance, AI/ML, data engineering, and open formats.
+  FastAPI backend, React/Vite frontend, SPCS-deployable. Enforces SDLC: plan-first, multi-session
+  boundaries, git commit per feature, memory persistence, and auto-generated next-session prompt.
+  Proven on NCIM, IMSU, and MISK projects.
   Triggers: platform demo, demo pack, generate demo, customer demo, build demo, demo generator,
   demo for [customer], create demo, snowflake demo, presales demo, partner demo.
   Do NOT use for: SAP BDC demos (use sap-bdc-demo-generator), single-page Streamlit apps
@@ -39,10 +38,10 @@ type: community
 
 Generates a production-quality Snowflake Platform Demo for any customer in 5 structured sessions.
 Built on the proven MISK Foundation architecture — battle-tested across NCIM (Government/Municipal),
-IMSU (Education), and MISK (Non-profit/Education) projects. 23 interactive pages covering compute,
-governance, AI/ML, data engineering, and open formats.
+IMSU (Education), and MISK (Non-profit/Education) projects. Pages are selected dynamically from a
+catalog of capabilities based on customer industry, pain points, and requirements.
 
-**In scope:** Full-stack demo generation (FastAPI + React), RBAC, SPCS deployment, semantic model,
+**In scope:** Full-stack demo generation (FastAPI + React/Next.js), RBAC, deployment (App Runtime or SPCS), semantic model,
 Cortex Search RAG, Cortex Analyst chatbot, ML pipelines, data governance pages, demo script.
 
 **Out of scope:** Production data pipelines, real customer data loading, CI/CD setup, monitoring/alerting.
@@ -111,18 +110,18 @@ If the user pastes a **next-session prompt** (contains "NEXT SESSION PROMPT"), i
 
 ⚠️ STOPPING POINT: Plan must be explicitly approved before any code generation begins.
 
-### Step 3 — Sessions 1–5: Local Build (+ optional S6 SPCS)
+### Step 3 — Sessions 1-5: Local Build (+ optional S6 Deploy)
 
 | Session | Name | Scope | Sub-skill |
 |---------|------|-------|-----------|
 | S1 | Infrastructure | config.toml + 7 deploy SQL scripts + deploy.py | `generate/SKILL.md` |
 | S2 | Backend | session.py + main.py (50+ endpoints) + Cortex Search seed | `generate/SKILL.md` |
-| S3 | Frontend Core | 8 core pages + shared components | `generate/SKILL.md` |
-| S4 | Frontend Advanced | 15 advanced pages + semantic model YAML | `generate/SKILL.md` |
+| S3 | Frontend Core | Core pages (selected) + shared components | `generate/SKILL.md` |
+| S4 | Frontend Advanced | Advanced pages (selected) + semantic model YAML | `generate/SKILL.md` |
 | S5 | Polish + Demo Pack | Local verification + README + DEMO_SCRIPT.md | `generate/SKILL.md` + `demo-script/SKILL.md` |
-| S6 | SPCS Deploy _(optional)_ | Dockerfiles + SPCS spec + deploy script | `generate/SKILL.md` |
+| S6 | Deploy _(optional)_ | App Runtime (recommended) or SPCS (legacy) | `generate/SKILL.md` |
 
-**Local-first philosophy**: Sessions 1–5 produce a fully working demo on `localhost`. SPCS is proposed as an option at the end of S5. If declined, the demo is complete without it.
+**Local-first philosophy**: Sessions 1-5 produce a fully working demo on `localhost`. Deployment is proposed at the end of S5: **App Runtime** (Next.js, `snow app deploy`, no Docker) is the recommended path; **SPCS** (Docker multi-container) remains available as a legacy option. If declined, the demo is complete without deployment.
 
 ⚠️ STOPPING POINT: Never auto-advance between sessions. Wait for explicit user instruction.
 
@@ -152,8 +151,8 @@ Load `sub-skills/validate/SKILL.md` to:
 
 | File | Purpose |
 |------|---------|
-| `references/misk-architecture.md` | 23-page file map, patterns, Cortex Search setup |
-| `references/demo-pages-catalog.md` | All 23 pages × Snowflake feature × endpoints × hooks |
+| `references/misk-architecture.md` | Full file map, patterns, Cortex Search setup |
+| `references/demo-pages-catalog.md` | Page catalog × Snowflake feature × endpoints × hooks |
 | `references/data-domain-templates.md` | 8 verticals with entity DDL + regulatory docs |
 | `references/scenario-matrix.md` | Industry × scenario priority matrix |
 | `references/gotchas-playbook.md` | Battle-tested gotchas from NCIM, IMSU, MISK |
@@ -164,7 +163,7 @@ Load `sub-skills/validate/SKILL.md` to:
 2. **Tab cache pattern**: `Partial<Record<TabKey, DataState>>` — switching tabs never re-fetches
 3. **NCIM philosophy**: Business Scenario always visible, Input/Output split, independent run per card
 4. **Fully qualified SQL**: always `{SLUG}_DEMO.{DOMAIN}_DATA.TABLE_NAME`
-5. **Bilingual toggle**: EN/AR via `language` field from intake — Arabic gets `dir="rtl"` + Noto Sans Arabic
+5. **Bilingual toggle**: Secondary language via `language` field from intake. RTL languages (ar, fa, ur) get `dir="rtl"` + appropriate font. LTR languages (fr, tr, pt) get translated labels only.
 6. **Mock fallback**: ACCOUNT_USAGE views have ~45 min latency — always have illustrative fallback
 7. **Cortex Search**: seeded at backend startup, non-fatal try/except around service creation
 8. **exec_sql() contract**: always returns `(list[dict], list[str], float)` — lowercase keys

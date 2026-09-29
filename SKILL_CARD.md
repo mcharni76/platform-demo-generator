@@ -52,7 +52,7 @@
 │   │  60+ files • Full-stack app • SPCS-deployable            │           │
 │   ├──────────────────────────────────────────────────────────┤           │
 │   │  FastAPI Backend    │ 50+ endpoints, Cortex Search seed  │           │
-│   │  React Frontend     │ 17+ pages, dark mode, bilingual    │           │
+│   │  React Frontend     │ Dynamic pages, dark mode, multilingual │           │
 │   │  Deploy Scripts     │ 7 SQL scripts + orchestrator       │           │
 │   │  Synthetic Data     │ Scaled CSVs per vertical           │           │
 │   │  Semantic Model     │ Cortex Analyst YAML                │           │
@@ -81,7 +81,7 @@
 │                                                                          │
 ├──────────────────────────────────────────────────────────────────────────┤
 │                                                                          │
-│   PAGES GENERATED (17 template + custom)                                 │
+│   PAGES GENERATED (from catalog + custom)                                  │
 │   ──────────────────────────────────────                                 │
 │                                                                          │
 │   CORE (S3):                                                             │
@@ -159,7 +159,7 @@
 | **Status** | Published |
 | **License** | Apache 2.0 |
 | **Type** | Community |
-| **Language** | English (generates en or en+ar apps) |
+| **Language** | English (generates en or en+{secondary} apps) |
 
 ## Compatibility
 

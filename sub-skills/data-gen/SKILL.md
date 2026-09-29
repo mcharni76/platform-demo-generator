@@ -1,201 +1,267 @@
 ---
 name: platform-demo-data-gen
-description: "Synthetic seed data generator for platform demos. Creates realistic CSVs per industry vertical with configurable scale. Outputs to {target_path}/data/output/ ready for load_data.py."
+description: "Interactive synthetic seed data generator for platform demos. Walks the user through entity naming, regional config, scale selection, and data preview before committing. Outputs domain-realistic CSVs ready for load_data.py."
 ---
 
-# Data Generation — Synthetic Seed Data
+# Data Generation -- Interactive Synthetic Seed Data
 
-Generates realistic synthetic CSV files for the demo's data domain. Run this after Session 1 (infrastructure) creates the DDL, so the CSVs match the table schemas exactly.
+Generates realistic synthetic CSV files for the demo's data domain. This sub-skill is **interactive** -- it walks the user through confirming domain names, regions, and scale before generating, and shows a preview after.
 
----
-
-## When to Run
-
-- After S1 Infrastructure is complete (DDL defines the schema)
-- Before running `deploy.py --steps 04` (which expects data in the stage)
-- When resuming a demo that needs fresh/different data volumes
+Run this after Session 1 (infrastructure) creates the DDL, so the CSVs match the table schemas exactly.
 
 ---
 
-## Step 1: Determine Scale
+## Step 1: Confirm Domain Entities (ask_user_question)
 
-Ask the user for data scale:
+Read `references/data-domain-templates.md` for the `{industry}` vertical. Present the entity mapping to the user for confirmation:
 
-| Scale | Rows (primary entity) | Total rows across all tables | Demo feel |
-|-------|----------------------|------------------------------|-----------|
-| `small` | 10K | ~100K | Fast iteration, minimal storage |
-| `medium` | 100K | ~2M | Good for performance demos |
-| `large` | 500K | ~10M | Full MISK-equivalent, impressive benchmark numbers |
-
-Default: `medium` (matches most presales demos).
-
----
-
-## Step 2: Generate the Script
-
-Create `{target_path}/scripts/generate_seed_data.py`:
-
-```python
-#!/usr/bin/env python3
-"""Generate synthetic seed data for {customer_name} platform demo."""
-
-import csv
-import os
-import random
-from datetime import datetime, timedelta
-from pathlib import Path
-
-# --- Configuration ---
-SCALE = os.getenv("SCALE", "medium")
-OUTPUT_DIR = Path("{target_path}/data/output")
-OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-SCALE_MULTIPLIER = {"small": 0.02, "medium": 0.2, "large": 1.0}[SCALE]
-
-# --- Domain Config (adapted per vertical) ---
-REGIONS = {regions_from_data_domain_templates}
-CATEGORIES = {categories_from_data_domain_templates}
-
-# --- Helpers ---
-RANDOM = random.Random(42)  # deterministic seed for reproducibility
-
-def rand_date(start_year=2022, end_year=2026):
-    start = datetime(start_year, 1, 1)
-    delta = (datetime(end_year, 6, 1) - start).days
-    return start + timedelta(days=RANDOM.randint(0, delta))
-
-def rand_choice(lst):
-    return RANDOM.choice(lst)
-
-def write_csv(filename, headers, rows):
-    path = OUTPUT_DIR / filename
-    with open(path, 'w', newline='', encoding='utf-8') as f:
-        writer = csv.writer(f)
-        writer.writerow(headers)
-        writer.writerows(rows)
-    print(f"  {filename}: {len(rows):,} rows")
+```json
+{
+  "questions": [
+    {
+      "header": "Entities",
+      "question": "I'll generate synthetic data for these domain entities. Confirm or edit the names:",
+      "type": "text",
+      "defaultValue": "{entity_list_from_data_domain_templates, comma-separated}"
+    }
+  ]
+}
 ```
 
+The user can rename entities to match their customer's actual terminology (e.g., "BENEFICIARIES" -> "POLICY_HOLDERS" for insurance).
+
 ---
 
-## Step 3: Generate Entity Data
+## Step 2: Confirm Regions (ask_user_question)
 
-For each entity in the domain (from `references/data-domain-templates.md`), generate a CSV using these rules:
+Regions must be country-specific, not generic. Present the default region list for the customer's country:
 
-### Row Count by Entity Type
+```json
+{
+  "questions": [
+    {
+      "header": "Regions",
+      "question": "Which regions should appear in the data? (These drive the Analytics drill-down and geographic charts)",
+      "type": "text",
+      "defaultValue": "{country_specific_regions}"
+    }
+  ]
+}
+```
 
-| Entity type | Formula | Example (medium) |
-|-------------|---------|------------------|
-| Reference tables (regions, categories) | Fixed small count | 13 regions, 150 categories |
-| Primary entity (customers, patients, etc.) | `500K × SCALE_MULTIPLIER` | 100K |
-| Secondary entity (orders, enrollments) | `primary × 4` | 400K |
-| Assessment/detail entity | `primary × 16` | 1.6M |
-| Feedback/text entity | `primary × 0.1` | 10K |
-| Events/small tables | Fixed 500 | 500 |
+Default region lists by country:
 
-### Data Quality Rules (critical for demo realism)
+| Country | Regions |
+|---------|---------|
+| Saudi Arabia | Riyadh, Eastern Province, Makkah, Madinah, Asir, Tabuk, Hail, Jazan, Najran, Al-Baha, Northern Borders, Al-Jouf, Qassim |
+| UAE | Abu Dhabi, Dubai, Sharjah, Ajman, Umm Al Quwain, Ras Al Khaimah, Fujairah |
+| Egypt | Cairo, Giza, Alexandria, Qalyubia, Dakahlia, Sharqia, Gharbia, Monufia, Beheira, Port Said |
+| Jordan | Amman, Irbid, Zarqa, Balqa, Mafraq, Karak, Tafilah, Ma'an, Ajloun, Jerash, Madaba, Aqaba |
+| USA | California, Texas, New York, Florida, Illinois, Pennsylvania, Ohio, Georgia, Michigan, North Carolina |
+| UK | London, South East, North West, East of England, West Midlands, South West, Yorkshire, East Midlands, North East, Scotland |
+| Generic | Region 1-10 (user should customize) |
 
-1. **Regional variance**: NOT uniform distribution. Top region gets 3-5x more than bottom region.
+---
+
+## Step 3: Confirm Scale and Data Profile (ask_user_question)
+
+```json
+{
+  "questions": [
+    {
+      "header": "Scale",
+      "question": "How much data should we generate?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Small (10K primary)", "description": "~100K total rows. Fast iteration, quick deploys. Good for development."},
+        {"label": "Medium (100K primary)", "description": "~2M total rows. Realistic demo feel. Performance page shows meaningful benchmark."},
+        {"label": "Large (500K primary)", "description": "~10M total rows. Impressive benchmark numbers. Takes longer to generate and load."}
+      ]
+    },
+    {
+      "header": "Categories",
+      "question": "What are the main categories/types in this domain? (e.g., for healthcare: Cardiology, Oncology, Pediatrics...)",
+      "type": "text",
+      "defaultValue": "{industry_default_categories}"
+    }
+  ]
+}
+```
+
+Default categories by industry:
+
+| Industry | Categories |
+|----------|-----------|
+| Healthcare | Cardiology, Oncology, Pediatrics, Orthopedics, Neurology, Obstetrics, Emergency, Dermatology, Radiology, Psychiatry, Internal Medicine, General Surgery |
+| Finance | Savings, Checking, Credit Card, Personal Loan, Mortgage, Investment, Insurance, Business Account, Foreign Exchange, Trade Finance |
+| Government | Building Permits, Business Licenses, Citizen Services, Public Safety, Environmental, Transportation, Education, Health Services, Social Services, Planning |
+| Energy | Crude Production, Gas Production, Refining, Distribution, Maintenance, Safety, Environmental, Logistics, Drilling, Reservoir |
+| Telecom | Prepaid, Postpaid, 5G, Fiber, Enterprise, Roaming, Data-Only, IoT, Wholesale, MVNO |
+| Retail | Electronics, Clothing, Groceries, Home & Garden, Sports, Beauty, Toys, Automotive, Books, Jewelry |
+| Education | Engineering, Business, Medicine, Arts, Science, Law, Education, IT, Architecture, Agriculture |
+| Logistics | Express, Standard, Freight, Cold Chain, Hazmat, Last-Mile, Cross-Border, Returns, Warehousing, Fulfillment |
+
+---
+
+## Step 4: Generate the Script
+
+Create `{target_path}/scripts/generate_seed_data.py` using the confirmed entity names, regions, categories, and scale. The generated script MUST include:
+
+### Mandatory data realism rules
+
+1. **Country-specific regions** with skewed distribution (top region 3-5x larger than bottom):
    ```python
-   # Example: Riyadh 22%, Eastern 15%, Makkah 12%, ... , Northern Borders 1.5%
-   REGION_WEIGHTS = [0.22, 0.15, 0.12, 0.10, 0.09, 0.08, 0.07, 0.05, 0.04, 0.03, 0.02, 0.015, 0.015]
+   REGIONS = [
+       ("REG001", "Riyadh", 0.22),
+       ("REG002", "Eastern Province", 0.15),
+       ("REG003", "Makkah", 0.12),
+       # ... actual region names from Step 2
+   ]
    ```
 
-2. **Temporal variance**: NOT flat. Include seasonal patterns.
+2. **Domain-specific categories** with non-uniform distribution:
    ```python
-   # More activity in Q1/Q3, less in Q2 (summer), spike in Q4
+   CATEGORIES = ["Cardiology", "Oncology", "Pediatrics", ...]  # from Step 3
+   ```
+
+3. **Realistic entity names** using domain-appropriate patterns:
+   ```python
+   # Healthcare: culturally appropriate names for the customer's country
+   # KSA/GCC: Arabic names. Morocco/Tunisia: French + Arabic. Turkey: Turkish. etc.
+   FIRST_NAMES = ["Mohammed", "Ahmed", "Fatima", "Sara", ...]  # adapted per country
+   LAST_NAMES = ["Al-Rashid", "Al-Qahtani", ...]  # adapted per country
+   ```
+
+4. **PII columns** (critical for Data Masking page):
+   ```python
+   def fake_national_id(): return f"{RNG.randint(1,2)}{RNG.randint(10,99)}{RNG.randint(1000000,9999999)}"
+   def fake_email(first, last): return f"{first.lower()}.{last.lower()}@{RNG.choice(['gmail.com','outlook.com','company.sa'])}"
+   def fake_phone(): return f"+966{RNG.randint(500000000,599999999)}"
+   ```
+
+5. **Valid foreign keys** (every secondary entity FK references a real primary entity ID):
+   ```python
+   primary_ids = [row[0] for row in primary_rows]
+   for i in range(SECONDARY_COUNT):
+       entity_id = RNG.choice(primary_ids)  # MUST reference existing primary
+   ```
+
+6. **Seasonal temporal patterns** (for Forecast page):
+   ```python
    MONTH_WEIGHTS = [1.0, 0.9, 1.1, 1.2, 0.8, 0.6, 0.5, 0.7, 1.0, 1.1, 1.2, 1.3]
+   # Generate dates weighted by month
    ```
 
-3. **Category variance**: Top category 2x the bottom category (never uniform).
-
-4. **Status distribution**: Completion rates between 42–62% (not all 50%). Vary by category AND region.
-
-5. **PII columns**: Generate realistic-looking masked values:
+7. **Anomaly injection** (for Anomaly Detection page -- 3-5 spikes):
    ```python
-   def fake_national_id(): return f"{RANDOM.randint(1,2)}{RANDOM.randint(10,99)}{RANDOM.randint(1000000,9999999)}"
-   def fake_email(name): return f"{name.lower().replace(' ','.')}@example.com"
-   def fake_phone(): return f"+966{RANDOM.randint(500000000,599999999)}"
+   ANOMALY_MONTHS = [(2024, 3), (2024, 7), (2025, 1)]  # 3 months with anomalies
+   # During anomaly months: 3x normal volume + 20% higher scores
    ```
 
-6. **Text columns (for Cortex AI demos)**: Include mix of English and Arabic (if bilingual):
+8. **ML classification target** (for Classification page):
    ```python
-   FEEDBACK_TEMPLATES_EN = [
-       "The {entity} program was excellent. I learned a lot about {category}.",
-       "Average experience. Could improve the {aspect}.",
-       "Very disappointed with the {entity}. Not what I expected.",
-       # ... 20+ templates
-   ]
-   FEEDBACK_TEMPLATES_AR = [
-       "البرنامج كان ممتازاً. تعلمت الكثير عن {category}.",
-       "تجربة عادية. يمكن تحسين {aspect}.",
-       # ... 20+ templates
-   ]
+   # Completion/churn/risk varies by category AND region (not random)
+   # High-risk categories: lower completion, higher dropout
+   # Low-risk categories: higher completion, lower dropout
+   category_risk = {cat: RNG.uniform(0.3, 0.7) for cat in CATEGORIES}
    ```
 
+9. **Completion rates vary by category AND region** (42-62% range, correlated):
+   ```python
+   base_rate = category_risk[category]  # 0.3-0.7 from above
+   region_modifier = REGION_COMPLETION_BIAS[region]  # +/- 0.05
+   completed = RNG.random() < (base_rate + region_modifier)
+   ```
+
+10. **50+ feedback templates** (for Cortex AI sentiment diversity):
+    ```python
+    FEEDBACK_EN = [
+        # Positive (15+ templates)
+        "Exceptional {category} service. The {entity} process was seamless.",
+        "Very impressed with the {category} team. Professional and efficient.",
+        "Best experience I've had. The {aspect} was outstanding.",
+        # ... 12 more positive
+        # Neutral (10+ templates)
+        "The {category} service met basic expectations. Nothing exceptional.",
+        "Average {aspect}. Could be improved with better communication.",
+        # ... 8 more neutral
+        # Negative (10+ templates)
+        "Disappointed with the {category} service. Long wait times.",
+        "Below expectations. The {aspect} needs significant improvement.",
+        # ... 8 more negative
+    ]
+    FEEDBACK_SECONDARY = [
+        # 30+ templates in the customer's secondary language
+        # Arabic (ar): "البرنامج كان ممتازاً..."
+        # French (fr): "Le programme était excellent..."
+        # Turkish (tr): "Program mükemmeldi..."
+        # Adapt per language from intake
+    ]
+    ```
+
+11. **Regulatory documents from data-domain-templates.md** (not generic):
+    ```python
+    # Read the actual PDPL/GDPR/HIPAA content from the reference
+    # The script must use the regulatory_context to select the right docs
+    ```
+
 ---
 
-## Step 4: Generate Regulatory Documents (for Policy Intelligence)
+## Step 5: Run and Preview (interactive)
 
-Create `{target_path}/data/output/POLICY_DOCUMENTS.csv` with regulatory content from `references/data-domain-templates.md` → `{regulatory_context}_policy_docs` section.
-
-Headers: `doc_id,doc_name,doc_type,section,content`
-
-This seeds the Cortex Search service for the Policy Intelligence page.
-
----
-
-## Step 5: Verify Output
-
-After generation, print a summary:
-
-```
-=== Seed Data Generated ===
-Scale: {scale}
-Output: {target_path}/data/output/
-
-| File | Rows | Size |
-|------|------|------|
-| REGIONS.csv | 13 | 1 KB |
-| {PRIMARY}.csv | 100,000 | 12 MB |
-| {SECONDARY}.csv | 400,000 | 48 MB |
-| ...
-| POLICY_DOCUMENTS.csv | 12 | 8 KB |
-
-Total: {N} files, {X} MB
-Ready for: python deploy/load_data.py
-```
-
-⚠️ STOPPING POINT: Verify data looks reasonable before loading. Spot-check:
-- Regional distribution is skewed (not uniform)
-- Dates span 2022–2026 with seasonal patterns
-- PII columns have realistic format
-- Text feedback has both sentiments (positive/negative mix)
-- Completion rates vary by category (42–62% range)
-
----
-
-## Step 6: Make the Script Executable
+After generating the script, run it and show the user a preview:
 
 ```bash
-chmod +x {target_path}/scripts/generate_seed_data.py
+cd {target_path}
+SCALE={scale} python scripts/generate_seed_data.py
 ```
 
-Add to `docs/PLAN.md` the data generation step between S1 and the first `deploy.py --all`:
+Then show the user a summary AND sample rows:
 
+```json
+{
+  "questions": [
+    {
+      "header": "Data preview",
+      "question": "Here's what was generated. Does this look realistic for {customer_name}?\n\n{summary_table}\n\nSample primary entity rows:\n| name | region | category | status | score |\n|------|--------|----------|--------|-------|\n| {row1} |\n| {row2} |\n| {row3} |\n\nSample feedback:\n- EN: \"{sample_en}\"\n- {secondary_lang}: \"{sample_secondary}\"\n\nApprove or regenerate?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Looks good, proceed", "description": "Load this data into Snowflake"},
+        {"label": "Regenerate with changes", "description": "I'll tell you what to adjust"},
+        {"label": "Change scale", "description": "Generate at a different scale"}
+      ]
+    }
+  ]
+}
 ```
-After S1: Run `python scripts/generate_seed_data.py` (SCALE=medium by default)
-Then: `python deploy/deploy.py --all`
+
+If "Regenerate" -- ask what to change, update the script, re-run.
+If "Change scale" -- re-run with different SCALE env var.
+If "Looks good" -- proceed to load.
+
+---
+
+## Step 6: Load Data
+
+```bash
+cd {target_path}
+python deploy/load_data.py
 ```
+
+Show the user the load results (rows loaded per table, any errors).
 
 ---
 
 ## Common Mistakes
 
-- **Uniform distributions everywhere**. Real data is skewed — top region should be 3-5x larger than bottom. This makes Analytics page drill-downs actually interesting.
+- **Generic region names (Region A, Region B)**. Use the actual country's regions. "Riyadh 22%" is convincing; "Region A 22%" is not.
+- **Generic entity names (Entity_0000001)**. Use culturally appropriate names for the customer's country.
+- **Uniform distributions everywhere**. Real data is skewed -- top region should be 3-5x larger than bottom.
 - **Flat temporal data**. Without seasonal variance, forecast and anomaly detection produce boring results.
-- **All completion rates ~50%**. Vary by category (42–62%) AND by region. This was the #1 MISK demo realism issue.
-- **Forgetting Arabic feedback text**. Cortex AI page needs Arabic content for sentiment/translate demos.
-- **PII that looks fake**. Use realistic formats (10-digit national IDs, +966 phone numbers for KSA) so masking demo is convincing.
-- **Missing POLICY_DOCUMENTS.csv**. Without it, the Cortex Search service has nothing to index — Policy Intelligence page is empty.
-- **Non-deterministic randomness**. Always use `Random(42)` seed — reproducible data means consistent demo results across re-runs.
+- **No anomaly injection**. Anomaly detection needs actual anomalies (3-5 spikes) to produce interesting results.
+- **All completion rates ~50%**. Vary by category (42-62%) AND by region. This was the #1 MISK demo realism issue.
+- **No PII columns**. Without national_id, email, phone -- the Data Masking page has nothing to mask.
+- **Only 10 feedback templates**. Cortex AI on 10K rows with 10 templates looks obviously synthetic. Need 50+.
+- **Missing POLICY_DOCUMENTS.csv**. Without it, the Cortex Search service has nothing to index.
+- **Broken foreign keys**. Secondary entity IDs must reference actual primary entity IDs.
+- **Non-deterministic randomness**. Always use `Random(42)` seed -- reproducible data means consistent demo results.

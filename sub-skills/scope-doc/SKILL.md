@@ -5,7 +5,7 @@ description: "Generates an Excel scope/customization form for platform demo proj
 
 # Scope Document — Customization Intake Form (Excel)
 
-Generates a structured Excel workbook that captures ALL demo requirements before code generation starts. The 17 template pages are a baseline — customers can ADD custom pages, REMOVE irrelevant ones, and MODIFY priorities.
+Generates a structured Excel workbook that captures ALL demo requirements before code generation starts. The template pages from the catalog are a baseline -- customers can ADD custom pages, REMOVE irrelevant ones, and MODIFY priorities.
 
 This is the **first deliverable** — produced during or before Session 0. It replaces ad-hoc emails/Slack messages with a formal, version-controlled scope document that stakeholders can review and approve.
 
@@ -53,7 +53,7 @@ Use `mcp_google-worksp_create_spreadsheet` (if Google Workspace available) OR wr
 | 2 | Slug | {slug} |
 | 3 | Industry | {industry} |
 | 4 | Country | {country} |
-| 5 | Language | {en / en+ar} |
+| 5 | Language | {en / en+ar / en+fr / en+tr / ...} |
 | 6 | Regulatory Context | {PDPL / GDPR / HIPAA / Generic} |
 | 7 | Brand Color | {#RRGGBB} |
 | 8 | Website | {url} |
@@ -68,7 +68,7 @@ Use `mcp_google-worksp_create_spreadsheet` (if Google Workspace available) OR wr
 
 ### Tab 2: "Page Requirements"
 
-This is the **core tab** — includes the 17 template pages as baseline + empty rows for custom additions.
+This is the **core tab** -- includes the catalog template pages as baseline + empty rows for custom additions.
 
 | # | Page Name | Category | Include? | Priority | Snowflake Feature | Custom Requirements | Notes |
 |---|-----------|----------|----------|----------|-------------------|--------------------:|-------|
@@ -81,7 +81,7 @@ This is the **core tab** — includes the 17 template pages as baseline + empty 
 | 7 | Data Lineage | Core | ✅ | HIGH | OBJECT_DEPENDENCIES | | Node graph |
 | 8 | Data Quality | Core | ✅ | HIGH | Data Metric Functions | | 3-tab layout |
 | 9 | ML & Predictive AI | Advanced | ✅ | {industry-driven} | FORECAST/ANOMALY/CLASSIFY | | 3 NCIM cards |
-| 10 | Cortex AI (NLP) | Advanced | ✅ | {industry-driven} | SENTIMENT/SUMMARIZE/TRANSLATE | | 5 cards, Arabic text |
+| 10 | Cortex AI (NLP) | Advanced | ✅ | {industry-driven} | SENTIMENT/SUMMARIZE/TRANSLATE | | NLP cards, bilingual text |
 | 11 | Query Optimization | Advanced | ✅ | MEDIUM | Result Cache/ACCOUNT_USAGE | | Mock fallback |
 | 12 | Cost & Pricing | Advanced | ✅ | MEDIUM | Pay-per-Use | | Mock fallback |
 | 13 | Dynamic Tables | Advanced | ✅ | {industry-driven} | Declarative Pipelines | | |
@@ -194,33 +194,7 @@ Before presenting to the user, pre-fill priority values from `references/scenari
 
 ## Step 4: Generate the File
 
-### Option A: Google Sheets (if MCP available)
-
-```
-mcp_google-worksp_create_spreadsheet:
-  title: "{customer_name} — Platform Demo Scope v1.0"
-  sheets:
-    - name: "Customer Context"
-      headers: ["Field", "Value"]
-      rows: [...14 rows from Step 2 Tab 1...]
-    - name: "Page Requirements"
-      headers: ["#", "Page Name", "Category", "Include?", "Priority", "Snowflake Feature", "Custom Requirements", "Notes"]
-      rows: [...17+ rows...]
-    - name: "Data Domain Mapping"
-      headers: ["#", "Template Entity", "Customer Entity", "Table Name", "Est. Rows", "PII Columns", "Notes"]
-      rows: [...8+ rows...]
-    - name: "Scenario Flow"
-      headers: ["#", "Demo Order", "Page", "Time (min)", "Lead Hook", "Feature", "Audience"]
-      rows: [...]
-    - name: "Timeline & Sessions"
-      headers: ["Session", "Name", "Scope", "Target Date", "Status", "Dependencies", "Notes"]
-      rows: [...7 rows...]
-    - name: "Sign-Off"
-      headers: ["Field", "Value"]
-      rows: [...]
-```
-
-### Option B: Local .xlsx (if no Google Workspace)
+Generate a local `.xlsx` workbook using the bundled script. This keeps the skill self-contained with no external MCP dependencies.
 
 First ensure openpyxl is available:
 ```bash
@@ -244,13 +218,13 @@ python scripts/generate_scope_doc.py \
 After generating:
 
 ```
-Scope document created: {path or Google Sheets URL}
+Scope document created: {target_path}/docs/{slug}_scope_v1.xlsx
 
 Tabs:
-1. Customer Context — your project settings
-2. Page Requirements — 17 template pages + rows for custom pages
-3. Data Domain Mapping — entity names to finalize
-4. Scenario Flow — demo order and timing
+1. Customer Context -- your project settings
+2. Page Requirements -- catalog pages + rows for custom pages
+3. Data Domain Mapping -- entity names to finalize
+4. Scenario Flow -- demo order and timing
 5. Timeline & Sessions — target dates to fill
 6. Sign-Off — freeze scope before generation
 

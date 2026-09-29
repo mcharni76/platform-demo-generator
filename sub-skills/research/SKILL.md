@@ -28,7 +28,7 @@ From the response, extract:
 | **Key data entities** | What data the company produces/manages (transactions, assets, patients, etc.) |
 | **Data scale signals** | "millions of customers", "global operations", "real-time", "IoT sensors" |
 | **Pain points** | Legacy systems, data silos, compliance challenges, growth pressure |
-| **Language cue** | Is the website in Arabic or bilingual? → set `language: en+ar` |
+| **Language cue** | Is the website bilingual? Detect secondary language (Arabic, French, Turkish, etc.) |
 | **Brand color** | Look for prominent color in logo/header description if `brand_color` was not provided |
 | **Competitors/tools mentioned** | Current tech stack, vendors they reference |
 
@@ -72,6 +72,76 @@ Map to vertical using `references/scenario-matrix.md` industry list.
 Map to regulation using country (PDPL/GDPR/HIPAA/SOX/Generic).
 Identify key data entities from `references/data-domain-templates.md`.
 
+### Research Summary Checkpoint (ask_user_question)
+
+Before building the storytelling arc, confirm the research findings with the user:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Research",
+      "question": "Here's what I found from researching {customer_name}:\n\nIndustry: {detected_vertical}\nRegulatory context: {regulation} ({country})\nKey entities detected: {entity_list}\nPain points found:\n  1. {pain_1}\n  2. {pain_2}\n  3. {pain_3}\nData scale signals: {scale_signals}\nBrand color: {detected_or_not}\n\nDoes this look right, or should I adjust?",
+    "multiSelect": false,
+    "options": [
+        {"label": "Correct, continue", "description": "These findings match the customer context"},
+        {"label": "Wrong industry", "description": "The customer is in a different vertical"},
+        {"label": "Add pain points", "description": "I know additional pain points to include"},
+        {"label": "Adjust entities", "description": "The key data entities should be different"}
+      ]
+    }
+  ]
+}
+```
+
+This is critical when the website is uninformative. If fewer than 3 pain points were found from the website, explicitly tell the user: "The website didn't reveal much. Please share additional context about the customer's data challenges."
+
+---
+
+## Step 3b: Snowflake Feature Themes Selection (ask_user_question)
+
+Before building the storytelling arc, let the partner choose which **Snowflake feature themes** they want to emphasize. This drives which pages are recommended and how the story is framed.
+
+```json
+{
+  "questions": [
+    {
+      "header": "Themes",
+      "question": "Which Snowflake feature themes do you want to emphasize in this demo? (Select 2-4 themes that matter most to the customer)",
+      "multiSelect": true,
+      "options": [
+        {"label": "AI & Machine Learning", "description": "Cortex AI, ML functions, Cortex Analyst, Cortex Agent -- AI-powered insights"},
+        {"label": "Data Governance", "description": "Masking, Classification, Policy Intelligence, Lineage -- compliance and security"},
+        {"label": "Real-time & Streaming", "description": "Snowpipe Streaming, Dynamic Tables, Tasks+Streams -- real-time pipelines"},
+        {"label": "Performance & Scale", "description": "Elastic compute, result cache, clustering -- speed at scale"},
+        {"label": "Open Formats & Interop", "description": "Iceberg Tables, open data lake, multi-engine access -- no lock-in"},
+        {"label": "Data Quality & Ops", "description": "Data Metric Functions, Time Travel, Recovery, Optimization -- operational excellence"}
+      ]
+    }
+  ]
+}
+```
+
+### Theme-to-Page Mapping
+
+Use the selected themes to pre-populate the RECOMMENDED pages in the capability selection (Step 6):
+
+| Theme | Pages auto-recommended |
+|-------|----------------------|
+| AI & Machine Learning | ML/AI, Cortex AI, Ask {Customer}, Cortex Agent, Document AI, Notebooks |
+| Data Governance | Data Masking, Data Classification, Policy Intelligence, Data Lineage |
+| Real-time & Streaming | Streaming (Snowpipe), Dynamic Tables, Tasks + Streams |
+| Performance & Scale | Performance, Analytics, Optimization, Pricing |
+| Open Formats & Interop | Iceberg Tables, Architecture |
+| Data Quality & Ops | Data Quality, Time Travel, Recovery, Optimization |
+
+Pages that appear in multiple selected themes get a stronger recommendation. Pages that appear in zero selected themes are still available but marked as OPTIONAL in the capability selection.
+
+The theme selection also drives:
+- **Storytelling arc** (Step 4): the narrative thread emphasizes the selected themes
+- **Demo script** (S5): talking points lead with theme-aligned scenarios
+- **Demo flow order**: theme-aligned pages appear earlier in the recommended sequence
+
 ---
 
 ## Step 4: Build the Storytelling Arc
@@ -98,6 +168,8 @@ Based on research, pick ONE overarching narrative that connects all pages:
 | Energy | "From delayed sensor data to real-time predictive operations" |
 | Telecom | "From reactive churn management to AI-driven proactive retention" |
 | Retail | "From batch inventory updates to real-time personalization at scale" |
+| Education | "From fragmented student data to a unified, insight-driven academic platform" |
+| Logistics | "From delayed shipment visibility to real-time predictive supply chain operations" |
 
 ### 4b: Map Pain Points → Snowflake Capabilities
 
@@ -161,22 +233,85 @@ RECOMMENDED DEMO FLOW ({N} pages, ~{M} min):
 
 ## Step 6: Capability Selection (Interactive — ask_user_question)
 
-Now present ALL 23 capabilities grouped by relevance and let the user choose:
+Now present capabilities grouped by theme and let the user choose. **Split into multiple `ask_user_question` calls** to respect the 6-option limit per question:
 
+**Question 1: Foundation & Analytics**
 ```json
 {
   "questions": [
     {
-      "header": "Capabilities",
-      "question": "Based on research, I recommend these capabilities. Select which ones to INCLUDE in the demo (you can add/remove):",
+      "header": "Foundation",
+      "question": "Select foundation and analytics capabilities to include:",
       "multiSelect": true,
       "options": [
-        {"label": "Platform Overview", "description": "✅ RECOMMENDED — unified data platform KPIs"},
-        {"label": "Performance at Scale", "description": "✅ RECOMMENDED — 10M+ records in seconds"},
-        {"label": "Analytics Dashboards", "description": "✅ RECOMMENDED — 7-tab drill-down + map"},
-        {"label": "ML & Predictive AI", "description": "✅ RECOMMENDED — forecast, anomaly, classify"},
-        {"label": "Time Travel", "description": "✅ RECOMMENDED — point-in-time restore"},
-        {"label": "Cortex Agent", "description": "🆕 SUGGESTED — multi-tool AI (Search + Analyst)"}
+        {"label": "Architecture Overview", "description": "Static clickable platform map"},
+        {"label": "Platform Overview", "description": "Unified data platform KPIs"},
+        {"label": "Performance at Scale", "description": "10M+ records in seconds"},
+        {"label": "Analytics Dashboards", "description": "7-tab drill-down + map"},
+        {"label": "ML & Predictive AI", "description": "Forecast, anomaly, classify"},
+        {"label": "Cortex AI (NLP)", "description": "Sentiment, summarize, translate"}
+      ]
+    }
+  ]
+}
+```
+
+**Question 2: Governance & Compliance**
+```json
+{
+  "questions": [
+    {
+      "header": "Governance",
+      "question": "Select governance and compliance capabilities:",
+      "multiSelect": true,
+      "options": [
+        {"label": "Data Masking", "description": "Column-level security / PII protection"},
+        {"label": "Data Classification", "description": "Auto-discover PII with SYSTEM$CLASSIFY"},
+        {"label": "Policy Intelligence", "description": "Cortex Search RAG over regulations"},
+        {"label": "Data Lineage", "description": "OBJECT_DEPENDENCIES graph"},
+        {"label": "Data Quality", "description": "Data Metric Functions dashboard"}
+      ]
+    }
+  ]
+}
+```
+
+**Question 3: Innovation & Operations**
+```json
+{
+  "questions": [
+    {
+      "header": "Innovation",
+      "question": "Select innovation and operations capabilities:",
+      "multiSelect": true,
+      "options": [
+        {"label": "Ask {Customer} (Cortex Analyst)", "description": "NL-to-SQL chatbot"},
+        {"label": "Cortex Agent", "description": "Multi-tool AI (Search + Analyst)"},
+        {"label": "Dynamic Tables", "description": "Declarative pipelines"},
+        {"label": "Streaming (Snowpipe)", "description": "Sub-second ingestion"},
+        {"label": "Tasks + Streams", "description": "CDC / event-driven pipelines"},
+        {"label": "Iceberg Tables", "description": "Open format, no lock-in"}
+      ]
+    }
+  ]
+}
+```
+
+**Question 4: Remaining** (only if not covered above)
+```json
+{
+  "questions": [
+    {
+      "header": "More",
+      "question": "Any additional capabilities?",
+      "multiSelect": true,
+      "options": [
+        {"label": "Time Travel", "description": "Point-in-time restore wizard"},
+        {"label": "Disaster Recovery", "description": "CLONE / UNDROP wizard"},
+        {"label": "Document AI", "description": "AI_PARSE_DOCUMENT extraction"},
+        {"label": "Notebooks", "description": "Data science workflow"},
+        {"label": "Query Optimization", "description": "Result cache + pruning"},
+        {"label": "Cost & Pricing", "description": "Credit consumption model"}
       ]
     }
   ]
@@ -295,7 +430,7 @@ pain_points:
   - "{pain point 2}"
   - "{pain point 3}"
 regulatory_context: "{PDPL | GDPR | HIPAA | SOX | Generic}"
-language: "{en | en+ar}"
+language: "{en | en+ar | en+fr | en+tr | en+fa | en+ur}"
 brand_color_detected: "{#RRGGBB | not detected}"
 
 # Selected capabilities (user-confirmed)
@@ -373,9 +508,11 @@ Then load `sub-skills/plan/SKILL.md`.
 
 ## Common Mistakes
 
-- **Showing all 23 pages.** A demo is not a feature dump. Pick 10-12 that tell a story.
+- **Showing all pages.** A demo is not a feature dump. Pick 10-12 that tell a story.
 - **Not reading the RFP/MoM.** If the document says "real-time ingestion" and you skip Streaming, you lose credibility.
 - **Ordering by session (S3 then S4) instead of by story.** The demo flow is NOT the build order.
 - **Skipping gap analysis.** If the user selects Masking but not Classification, they'll get asked "how did you know what to mask?" — suggest it proactively.
 - **Generic hooks.** "This shows performance" is weak. "{customer_name} queries 10M {entity} records in 0.8 seconds — no pre-aggregation" is strong.
 - **No narrative thread.** Without a connecting story, the demo is 12 disconnected features.
+- **Assuming web_fetch returns useful content.** Corporate websites are often marketing fluff. If <3 pain points found, ask the user directly for industry, key entities, and pain points.
+- **Trying to auto-detect brand color from web_fetch.** web_fetch returns text, not CSS. Always ask the user for brand color — fallback is Snowflake blue.

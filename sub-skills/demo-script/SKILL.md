@@ -189,7 +189,33 @@ Demo questions to use:
 
 ---
 
-## Step 4: Commit and Update Memory
+## Step 4: Review Demo Script with User (ask_user_question)
+
+Before committing, present the key elements for user review:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Demo script",
+      "question": "DEMO_SCRIPT.md generated. Here's the recommended flow:\n\n{demo flow table: # | Page | Time | Lead Hook}\n\nTotal estimated time: ~{N} min\n\nOpening hook:\n\"{opening_hook}\"\n\nClosing hook:\n\"{closing_hook}\"\n\nDoes this flow and timing work for your audience?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Approve script", "description": "Flow and hooks look good, commit it"},
+        {"label": "Reorder pages", "description": "I want a different scenario sequence"},
+        {"label": "Edit hooks", "description": "Some talking points need tweaking"},
+        {"label": "Adjust timing", "description": "Some pages need more/less time"}
+      ]
+    }
+  ]
+}
+```
+
+If "Reorder" -- ask for the new order, regenerate the flow table.
+If "Edit hooks" -- ask which scenario, present the current hook, let user edit.
+If "Adjust timing" -- ask which pages, update time estimates.
+
+## Step 5: Commit and Update Memory
 
 ```bash
 git add docs/DEMO_SCRIPT.md
