@@ -32,12 +32,39 @@ Also record session start time: `session_start_time = CURRENT_TIMESTAMP()`.
 memory view /memories/{slug}-demo-project.md
 ```
 
-Also read the skill's gotchas reference (not a memory file — bundled with the skill):
+Also read the skill's gotchas reference (bundled with the skill):
 ```
 Read references/gotchas-playbook.md
 ```
 
-If `/memories/{slug}-demo-project.md` does not exist → this is **Session 0**. Create it now using the template below before doing anything else.
+If `/memories/{slug}-demo-project.md` does not exist, this is **Session 0**. Create it using the template below.
+
+### Step 1b: Knowledge Wiki Lookup
+
+Check the shared knowledge wiki for patterns relevant to this session:
+
+```
+memory view /memories/_index.md
+```
+
+Scan for pages relevant to the current session scope. Read only matching pages.
+
+**Always-relevant** (every session):
+- `GOTCHAS.md` -- master gotcha registry
+- `patterns/config-driven-zero-hardcoding.md`
+- `concepts/snowflake-sql-gotchas-extended.md`
+
+**Session-specific**:
+| Session | Wiki pages to read |
+|---------|-------------------|
+| S1 Infra | `patterns/snowflake-sql-scripting-traps.md`, `concepts/spcs.md` |
+| S2 Backend | `concepts/asyncio-snowpark-fastapi.md`, `concepts/cortex-ai-functions.md` |
+| S3 Frontend | `decisions/spcs-over-streamlit.md` |
+| S4 Testing | `patterns/gold-gate-test-battery.md` |
+| S5 Deploy | `concepts/spcs-deployment.md`, `patterns/spcs-service-deployment.md` |
+| S6 Docs | `patterns/session-handover-protocol.md` |
+
+Report relevant findings before starting work.
 
 ### Step 2: Confirm Session Scope
 

@@ -110,28 +110,38 @@ If the user pastes a **next-session prompt** (contains "NEXT SESSION PROMPT"), i
 
 ⚠️ STOPPING POINT: Plan must be explicitly approved before any code generation begins.
 
-### Step 3 — Sessions 1-5: Local Build (+ optional S6 Deploy)
+### Step 3 -- Sessions 1-6: Build, Test, Deploy, Document
 
 | Session | Name | Scope | Sub-skill |
 |---------|------|-------|-----------|
-| S1 | Infrastructure | config.toml + 7 deploy SQL scripts + deploy.py | `generate/SKILL.md` |
-| S2 | Backend | session.py + main.py (50+ endpoints) + Cortex Search seed | `generate/SKILL.md` |
-| S3 | Frontend Core | Core pages (selected) + shared components | `generate/SKILL.md` |
-| S4 | Frontend Advanced | Advanced pages (selected) + semantic model YAML | `generate/SKILL.md` |
-| S5 | Polish + Demo Pack | Local verification + README + DEMO_SCRIPT.md | `generate/SKILL.md` + `demo-script/SKILL.md` |
-| S6 | Deploy _(optional)_ | App Runtime (recommended) or SPCS (legacy) | `generate/SKILL.md` |
+| S1 | Snowflake Infrastructure | config.toml + deploy SQL scripts + deploy.py + seed data | `generate/SKILL.md` + `data-gen/SKILL.md` |
+| S2 | Backend | session.py + main.py (endpoints for selected pages) + Cortex Search seed | `generate/SKILL.md` |
+| S3 | Frontend | All selected pages (core + advanced) + shared components + semantic model | `generate/SKILL.md` |
+| S4 | Testing | Unit tests + integration tests + E2E tests tied to selected features | `test/SKILL.md` |
+| S5 | Deploy | App Runtime frontend + SPCS backend (or full SPCS). Mandatory. | `generate/SKILL.md` |
+| S6 | Documentation + Handoff | Customer-facing HTML deck + technical wiki + DEMO_SCRIPT.md + README | `demo-script/SKILL.md` + `docs-gen/SKILL.md` |
 
-**Local-first philosophy**: Sessions 1-5 produce a fully working demo on `localhost`. Deployment is proposed at the end of S5: **App Runtime** (Next.js, `snow app deploy`, no Docker) is the recommended path; **SPCS** (Docker multi-container) remains available as a legacy option. If declined, the demo is complete without deployment.
+**Build locally first, deploy always.** Sessions 1-3 produce a working demo on `localhost`. Session 4 validates it. Session 5 deploys it. Session 6 generates the documentation and presentation materials.
+
+### Knowledge Wiki Integration
+
+At the start of every session, the SDLC sub-skill reads relevant pages from the shared knowledge wiki (`/memories/_index.md`). This brings in:
+- **Patterns**: SPCS deployment patterns, session handover protocol, config-driven zero-hardcoding
+- **Concepts**: Cortex AI functions, SPCS networking, Snowflake SQL gotchas
+- **Decisions**: React+FastAPI on SPCS over Streamlit, stored procs for AI pipelines
+- **GOTCHAS.md**: 173+ battle-tested gotchas across all projects
+
+This compounds knowledge from every project you've built -- the skill gets smarter over time.
+
+### Code Templates (Verified Working Code)
+
+The skill uses **8 verified code templates** in `assets/templates/` as the structural base for every generated file. The LLM adapts these templates (substituting domain entities, endpoints, config) but NEVER generates page patterns from scratch. This ensures:
+- Every page follows a proven UX pattern (PageTemplate, TabCachePage, WizardStepPage, NCIMCardPage)
+- Backend follows the exact `exec_sql()` contract
+- Session factory handles both local and SPCS auth
+- No hallucinated React patterns or broken FastAPI structures
 
 ⚠️ STOPPING POINT: Never auto-advance between sessions. Wait for explicit user instruction.
-
-### Step 4 — Validation (optional, any time after S2)
-
-Load `sub-skills/validate/SKILL.md` to:
-- Verify backend starts without errors
-- Confirm `npm run build` passes
-- Smoke-test key API endpoints
-- Validate SQL compiles against Snowflake
 
 ## Sub-Flows
 
@@ -144,7 +154,9 @@ Load `sub-skills/validate/SKILL.md` to:
 | Plan | `sub-skills/plan/SKILL.md` | Multi-session plan generation |
 | Data Gen | `sub-skills/data-gen/SKILL.md` | Synthetic CSV generation per vertical |
 | Generate | `sub-skills/generate/SKILL.md` | Per-session file scaffolding |
+| Testing | `sub-skills/test/SKILL.md` | Unit + integration + E2E test generation |
 | Demo Script | `sub-skills/demo-script/SKILL.md` | DEMO_SCRIPT.md with talking points |
+| Docs Generation | `sub-skills/docs-gen/SKILL.md` | Customer-facing HTML deck + technical wiki |
 | Validate | `sub-skills/validate/SKILL.md` | Post-generation smoke testing |
 
 ## Reference Files
