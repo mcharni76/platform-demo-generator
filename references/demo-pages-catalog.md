@@ -11,7 +11,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `architecture` |
 | **React File** | `PageArchitecture.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Medallion Architecture / Full Platform |
 | **Backend Endpoints** | **None — fully static** |
 | **Required Tables** | None |
@@ -26,7 +26,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `platform` |
 | **React File** | `PagePlatform.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Unified Data Platform |
 | **Backend Endpoints** | `GET /api/platform/kpis`, `GET /api/platform/stats`, `GET /api/platform/warehouse` |
 | **Required Tables** | `{PRIMARY_ENTITY}`, `{SECONDARY_ENTITY}`, `{TERTIARY_ENTITY}` |
@@ -40,7 +40,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `performance` |
 | **React File** | `PagePerformance.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Elastic Compute / Virtual Warehouses |
 | **Backend Endpoints** | `GET /api/performance/benchmark`, `GET /api/performance/compare`, `GET /api/performance/completion-rates`, `GET /api/performance/top-programs` |
 | **Required Tables** | Largest domain entity (millions of rows) |
@@ -55,7 +55,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `analytics` |
 | **React File** | `PageAnalytics.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Window Functions, PIVOT, H3 Geospatial |
 | **Backend Endpoints** | `GET /api/analytics/program-performance`, `/regional-impact`, `/demographics`, `/skills-gap`, `/startup-funnel`, `/event-impact`, `/enrollment-trends`, `/regional-map`, `/h3-grid`, `/region/{id}`, `/region/{id}/program/{id}` |
 | **Required Tables** | All domain entities |
@@ -70,7 +70,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `ml-ai` |
 | **React File** | `PageMLAI.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | FORECAST, DETECT_ANOMALIES, CLASSIFICATION |
 | **Backend Endpoints** | `GET /api/ml/forecast`, `GET /api/ml/anomalies`, `GET /api/ml/classification`, `GET /api/ml/summary` |
 | **Required Tables** | Time-series domain entity; classification target entity |
@@ -85,7 +85,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `time-travel` |
 | **React File** | `PageTimeTravel.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Time Travel / AT(OFFSET) / BEFORE |
 | **Backend Endpoints** | `GET /api/time-travel/demo`, `GET /api/time-travel/changes`, `POST /api/time-travel/step/{0-4}`, `POST /api/time-travel/reset`, `POST /api/time-travel/corrupt/step/{0-4}`, `POST /api/time-travel/corrupt/reset` |
 | **Required Tables** | Main domain entity (updatable) |
@@ -100,7 +100,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `recovery` |
 | **React File** | `PageRecovery.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | CLONE / UNDROP |
 | **Backend Endpoints** | `GET /api/recovery/demo`, `GET /api/recovery/clone` |
 | **Required Tables** | Main domain entity |
@@ -115,7 +115,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `cortex-ai` |
 | **React File** | `PageCortexAI.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Cortex AI Functions (SENTIMENT, SUMMARIZE, TRANSLATE, CLASSIFY) |
 | **Backend Endpoints** | `GET /api/cortex-ai/sentiment`, `/summarize`, `/translate`, `/classify`, `/all` |
 | **Required Tables** | Text/feedback entity with multilingual content |
@@ -130,7 +130,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `lineage` |
 | **React File** | `PageLineage.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | OBJECT_DEPENDENCIES (INFORMATION_SCHEMA) |
 | **Backend Endpoints** | `GET /api/lineage` |
 | **Required Tables** | Dynamic Tables and ML model views (for rich lineage graph) |
@@ -144,7 +144,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `quality` |
 | **React File** | `PageQuality.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Data Metric Functions (DMFs) |
 | **Backend Endpoints** | `GET /api/quality/metrics`, `/freshness`, `/duplicates` |
 | **Required Tables** | Main domain entity |
@@ -158,7 +158,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `optimization` |
 | **React File** | `PageOptimization.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Result Cache / Partition Pruning / ACCOUNT_USAGE |
 | **Backend Endpoints** | `GET /api/optimization/query-history`, `/slow-queries`, `/clustering`, `/warehouse-utilization` |
 | **Required Tables** | SNOWFLAKE.ACCOUNT_USAGE views |
@@ -173,7 +173,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `pricing` |
 | **React File** | `PagePricing.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Pay-per-Use / Credit Consumption |
 | **Backend Endpoints** | `GET /api/pricing/credit-usage`, `/warehouse-sizes`, `/breakdown`, `/cost-per-query` |
 | **Required Tables** | SNOWFLAKE.ACCOUNT_USAGE.WAREHOUSE_METERING_HISTORY |
@@ -188,7 +188,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `dynamic-tables` |
 | **React File** | `PageDynamicTables.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Dynamic Tables (Declarative Pipelines) |
 | **Backend Endpoints** | `GET /api/dynamic-tables` |
 | **Required Tables** | `DT_{ENTITY}_ENRICHED` dynamic table |
@@ -203,7 +203,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `policy-intelligence` |
 | **React File** | `PagePolicyIntelligence.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | **Cortex Search** (RAG on unstructured data) |
 | **Backend Endpoints** | `GET /api/policy/documents`, `POST /api/policy/search`, `POST /api/policy/compliance-check` |
 | **Required Tables** | `POLICY_DOCUMENTS` (seeded at backend startup) |
@@ -220,7 +220,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `data-masking` |
 | **React File** | `PageDataMasking.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Column-Level Security / Dynamic Data Masking |
 | **Backend Endpoints** | `GET /api/masking/raw`, `/masking/policy`, `/masking/masked` |
 | **Required Tables** | Main domain entity with PII columns |
@@ -235,7 +235,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `data-classification` |
 | **React File** | `PageDataClassification.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | SYSTEM$CLASSIFY / Sensitive Data Classification |
 | **Backend Endpoints** | `GET /api/classification/scan`, `/classification/policy`, `/classification/report` |
 | **Required Tables** | All domain entity tables |
@@ -250,7 +250,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `ask-{slug}` |
 | **React File** | `PageAsk{Name}.tsx` |
-| **Session** | S3 (Core) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Cortex Analyst (Natural Language to SQL) |
 | **Backend Endpoints** | `GET /api/ask-{slug}/status`, `POST /api/ask-{slug}/query`, `POST /api/ask-{slug}/analyst` |
 | **Required Tables** | 4-6 primary domain entities (semantic model tables) |
@@ -266,7 +266,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `document-ai` |
 | **React File** | `PageDocumentAI.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | AI_PARSE_DOCUMENT / Document AI |
 | **Backend Endpoints** | `GET /api/document-ai/documents`, `POST /api/document-ai/parse`, `POST /api/document-ai/query` |
 | **Required Tables** | `DOCUMENTS` (staged PDFs/images on internal stage) |
@@ -281,7 +281,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `cortex-agent` |
 | **React File** | `PageCortexAgent.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Cortex Agent (Agentic AI) |
 | **Backend Endpoints** | `POST /api/agent/chat`, `GET /api/agent/status`, `GET /api/agent/tools` |
 | **Required Tables** | Same as Ask {Customer} + POLICY_DOCUMENTS (agent uses both Analyst + Search) |
@@ -297,7 +297,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `notebooks` |
 | **React File** | `PageNotebooks.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Snowflake Notebooks |
 | **Backend Endpoints** | `GET /api/notebooks/list`, `GET /api/notebooks/output/{name}` |
 | **Required Tables** | ML training view (same as ML/AI page) |
@@ -312,7 +312,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `iceberg-tables` |
 | **React File** | `PageIcebergTables.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Apache Iceberg Tables (Managed + Unmanaged) |
 | **Backend Endpoints** | `GET /api/iceberg/tables`, `GET /api/iceberg/metadata/{table}`, `POST /api/iceberg/query` |
 | **Required Tables** | At least 1 Iceberg table created in the schema |
@@ -327,7 +327,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `streaming` |
 | **React File** | `PageStreaming.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Snowpipe Streaming / Continuous Ingestion |
 | **Backend Endpoints** | `GET /api/streaming/status`, `POST /api/streaming/insert`, `GET /api/streaming/latency`, `GET /api/streaming/history` |
 | **Required Tables** | `STREAMING_EVENTS` (landing table for streaming inserts) |
@@ -342,7 +342,7 @@ Capability catalog for the Platform Demo. Each page defines a Snowflake feature,
 |---|---|
 | **Page ID** | `tasks-streams` |
 | **React File** | `PageTasksStreams.tsx` |
-| **Session** | S4 (Advanced) |
+| **Session** | S3 (Frontend) |
 | **Snowflake Feature** | Tasks + Streams (CDC / Event-driven Pipelines) |
 | **Backend Endpoints** | `GET /api/tasks/list`, `GET /api/tasks/history`, `GET /api/streams/status`, `POST /api/tasks/run` |
 | **Required Tables** | Source table with STREAM + downstream TASK |

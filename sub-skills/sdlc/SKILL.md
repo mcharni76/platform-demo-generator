@@ -103,12 +103,12 @@ Create `/memories/{slug}-demo-project.md` with:
 | Session | Name | Status | Commit | Date |
 |---------|------|--------|--------|------|
 | S0 | Planning | in-progress | — | {date} |
-| S1 | Infrastructure | pending | — | — |
+| S1 | Snowflake Infra + Data | pending | — | — |
 | S2 | Backend | pending | — | — |
-| S3 | Frontend Core | pending | — | — |
-| S4 | Frontend Advanced | pending | — | — |
-| S5 | Polish + Demo Pack | pending | — | — |
-| S6 | SPCS Deploy (optional) | pending | — | — |
+| S3 | Frontend | pending | — | — |
+| S4 | Testing | pending | — | — |
+| S5 | Deploy | pending | — | — |
+| S6 | Docs + Handoff | pending | — | — |
 
 ## Research Summary
 (filled during Session 0 research phase)
@@ -415,9 +415,13 @@ Session 0 has no handover doc and no "previous session to summarize". The S0 clo
 
 No handover document is created for S0 (nothing was built).
 
-### Session 5 Edge Case (Local-complete session — deployment is optional next)
+### Session 5 Edge Case (Deploy session -- always runs)
 
-If the user chose "Local only" or "Later" for deployment at end of S5, output a **DEMO READY** block instead of a next-session prompt:
+Session 5 deploys the demo. There is no "skip deployment" option. The architecture is:
+- **React frontend** on **Snowflake App Runtime** (`snow app deploy`)
+- **FastAPI backend** on **SPCS** (single-container Docker service)
+
+After S5, output a **DEMO DEPLOYED** block:
 
 ~~~
 ========================================
@@ -435,7 +439,11 @@ BUILD COST SUMMARY (S0-S5):
   Total build time:         {total_duration} min across {N} sessions
   Estimated build cost:     ~${estimated_usd} USD
 
-START LOCAL DEV:
+DEPLOYED:
+  Frontend (App Runtime):   {app_runtime_url}
+  Backend (SPCS):           {spcs_endpoint_url}
+
+LOCAL DEV:
   cd {target_path}/backend
   SNOWFLAKE_CONNECTION_NAME={connection_name} \
     uv run uvicorn app.main:app --host 0.0.0.0 --port 8200
@@ -449,13 +457,12 @@ KEY DOCUMENTS:
 TOP SCENARIOS TO LEAD WITH:
 {list top 3 scenarios from DEMO_SCRIPT.md with one-line hook each}
 
-DEPLOYMENT (optional — run Session 6 anytime later):
-  App Runtime (recommended): "Deploy the {slug} demo to App Runtime"
-  SPCS (legacy):             "Deploy the {slug} demo to SPCS"
+DOCUMENTATION (Session 6):
+  "Start Session 6 for {slug} — generate customer deck and technical wiki"
 ========================================
 ~~~
 
-If the user chose "App Runtime" or "SPCS", generate a next-session prompt for S6 as normal.
+If the user chose "App Runtime" or "SPCS", generate a next-session prompt for S6 (Docs + Handoff).
 
 ---
 

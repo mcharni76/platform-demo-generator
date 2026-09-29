@@ -145,8 +145,12 @@ Total estimated demo time: `=SUM(C2:C{N})` minutes.
 | S0.5 | Data Gen | Synthetic CSVs | {date} | ⬜ Pending | S0 approved | |
 | S1 | Infrastructure | config + deploy SQL | {date} | ⬜ Pending | S0 approved | |
 | S2 | Backend | FastAPI + Cortex Search | {date} | ⬜ Pending | S1 complete | |
-| S3 | Frontend Core | 8 pages + shared | {date} | ⬜ Pending | S2 complete | |
-| S4 | Frontend Advanced | 9+ pages + semantic model | {date} | ⬜ Pending | S3 complete | |
+| S1 | Snowflake Infra + Data | config + SQL deploy + seed data | {date} | ⬜ Pending | S0 approved | |
+| S2 | Backend | FastAPI + Cortex Search | {date} | ⬜ Pending | S1 complete | |
+| S3 | Frontend | All selected pages + shared | {date} | ⬜ Pending | S2 complete | |
+| S4 | Testing | Unit + integration + E2E | {date} | ⬜ Pending | S3 complete | |
+| S5 | Deploy | App Runtime + SPCS | {date} | ⬜ Pending | S4 complete | |
+| S6 | Docs + Handoff | HTML deck + wiki + demo script | {date} | ⬜ Pending | S5 complete | |
 | S5 | Deploy + Demo Pack | SPCS + DEMO_SCRIPT | {date} | ⬜ Pending | S4 complete | |
 | S6 | _Custom (if needed)_ | Custom pages | {date} | ⬜ Pending | S5 complete | Only if custom pages added |
 
@@ -242,7 +246,7 @@ Once approved, paste the next-session prompt to start Session 1.
 
 ---
 
-## Handling Custom Pages (beyond the 17 template)
+## Handling Custom Pages (beyond the catalog)
 
 When a user adds custom pages in Tab 2:
 

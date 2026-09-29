@@ -6,7 +6,7 @@ description: |
   Build a production-quality Snowflake Platform Demo customized per customer. Pages are selected
   dynamically based on customer industry, pain points, and use case requirements — drawn from a
   catalog of capabilities covering compute, governance, AI/ML, data engineering, and open formats.
-  FastAPI backend, React/Vite frontend, SPCS-deployable. Enforces SDLC: plan-first, multi-session
+  FastAPI backend (SPCS), React/Vite frontend (App Runtime). Enforces SDLC: plan-first, multi-session
   boundaries, git commit per feature, memory persistence, and auto-generated next-session prompt.
   Proven on NCIM, IMSU, and MISK projects.
   Triggers: platform demo, demo pack, generate demo, customer demo, build demo, demo generator,
@@ -179,7 +179,7 @@ The skill uses **8 verified code templates** in `assets/templates/` as the struc
 6. **Mock fallback**: ACCOUNT_USAGE views have ~45 min latency — always have illustrative fallback
 7. **Cortex Search**: seeded at backend startup, non-fatal try/except around service creation
 8. **exec_sql() contract**: always returns `(list[dict], list[str], float)` — lowercase keys
-9. **Multi-container SPCS**: backend + frontend in same pod, communicate via localhost
+9. **Deployment architecture**: App Runtime for React frontend (no Docker), SPCS for FastAPI backend (single container). Frontend proxies `/api/*` to SPCS backend.
 
 ## Stopping Points
 

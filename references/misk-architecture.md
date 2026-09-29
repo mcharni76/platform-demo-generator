@@ -28,7 +28,7 @@ Full technical reference for the platform demo architecture (derived from the MI
 │   ├── pyproject.toml               # uv-based: snowflake-snowpark-python, fastapi, httpx
 │   └── app/
 │       ├── session.py               # Snowpark session factory (local vs SPCS)
-│       ├── main.py                  # FastAPI app — 60+ endpoints across 23 pages
+│       ├── main.py                  # FastAPI app — endpoints for selected pages
 │       └── semantic_model/
 │           └── misk_semantic_model.yaml   # Cortex Analyst semantic model
 ├── frontend/
@@ -40,7 +40,7 @@ Full technical reference for the platform demo architecture (derived from the MI
 │   └── src/
 │       ├── lib/
 │       │   ├── api.ts               # apiFetch() — base URL /api, TypeScript interfaces
-│       │   ├── scenarios.ts         # SCENARIOS array: 23 pages with labels, icons, features
+│       │   ├── scenarios.ts         # SCENARIOS array: selected pages with labels, icons, features
 │       │   └── csv.ts               # CSV download utility
 │       ├── App.tsx                  # PAGE_MAP + sidebar + guided mode + transition
 │       └── components/
@@ -54,10 +54,10 @@ Full technical reference for the platform demo architecture (derived from the MI
 │           │   ├── FeatureBadge.tsx # Snowflake feature pill
 │           │   ├── QueryTimeBadge.tsx   # Execution time badge
 │           │   └── PanelCard.tsx   # NCIM card wrapper
-│           └── pages/               # 17 page components (see demo-pages-catalog.md)
+│           └── pages/               # Page components (per selection from research phase)
 └── spcs/
     ├── 01_infra.sql                 # Compute pool + image repo
-    ├── misk-service-spec.yaml       # Multi-container: backend + frontend in same pod
+    ├── misk-service-spec.yaml       # SPCS backend-only service spec (frontend on App Runtime)
     └── spcs_deploy.sh               # Build → push → CREATE/ALTER SERVICE
 ```
 
@@ -283,7 +283,7 @@ return {"data": display_data, "is_illustrative": is_illustrative, "execution_tim
 > Below are only the structural patterns needed for spec generation.
 
 ### Multi-Container Pod
-Both backend and frontend run in the same SPCS pod. They communicate via `localhost`.
+Backend deploys to SPCS as a single container. Frontend deploys to Snowflake App Runtime via `snow app deploy`. The App Runtime frontend proxies `/api/*` to the SPCS backend endpoint.
 nginx proxies `/api/*` → `http://localhost:8200` (not the container name).
 
 ### Service Spec Key Fields

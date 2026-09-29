@@ -2,7 +2,7 @@
 
 **A CoCo skill that generates a production-quality Snowflake Platform Demo for any customer in 5 interactive sessions.**
 
-Built on architecture proven across 3 real presales engagements (NCIM, IMSU, MISK). Produces a full-stack application: FastAPI backend, React/Vite frontend, interactive pages customized per customer industry and requirements. Deployable via Snowflake App Runtime (recommended) or SPCS.
+Built on architecture proven across 3 real presales engagements (NCIM, IMSU, MISK). Produces a full-stack application: FastAPI backend deployed on SPCS, React/Vite frontend deployed on Snowflake App Runtime, interactive pages customized per customer industry and requirements.
 
 > **For partners across MEA and globally.** Supports 8 industry verticals, 6 secondary languages (Arabic, French, Turkish, Farsi, Urdu, Portuguese), 19 regulatory frameworks, and dynamic page selection from a catalog of Snowflake capabilities.
 
@@ -182,19 +182,28 @@ Each session is one CoCo conversation. Paste the next-session prompt to continue
 
 | Session | What CoCo generates | Interactive checkpoints |
 |---------|-------------------|----------------------|
-| **S1 Infrastructure** | config.toml, 7 SQL deploy scripts, deploy.py | Review config + DDL before commit. Data generation wizard (entities, regions, categories, scale). Preview sample rows. |
-| **S2 Backend** | FastAPI main.py, session.py, Cortex Search seed | Backend health check. Endpoint smoke test results. |
-| **S3 Frontend Core** | Selected core pages + shared components | Live browser preview at localhost:5300. Per-page verification. |
-| **S4 Frontend Advanced** | Selected advanced pages + semantic model | Full page inventory table. Optional validation run. |
-| **S5 Polish** | README, ARCHITECTURE.md, DEMO_SCRIPT.md | Demo script review (reorder pages, edit hooks, adjust timing). Deployment choice. |
+| **S1 Snowflake Infra + Data** | config.toml, deploy SQL scripts, seed data | Review config + DDL. Interactive data generation (entities, regions, scale). |
+| **S2 Backend** | FastAPI endpoints, Cortex Search seed, semantic model | Backend health check. Endpoint smoke tests. |
+| **S3 Frontend** | All selected pages (core + advanced) + shared components | Live browser preview at localhost:5300. |
+| **S4 Testing** | Unit + integration + E2E tests | Test results with interactive fix loop. |
+| **S5 Deploy** | App Runtime frontend + SPCS backend | Deploy verification, live URL test. |
+| **S6 Docs + Handoff** | Customer HTML deck, technical wiki, DEMO_SCRIPT.md | Deck preview, wiki review. |
 
-### Session 6: Deploy (optional)
+### Session 5: Deploy (mandatory)
 
-| Option | What happens |
-|--------|-------------|
-| **App Runtime** (recommended) | Next.js wrapper for React frontend via `snow app deploy`. FastAPI backend on SPCS. No Docker for frontend. |
-| **SPCS** (legacy) | Both containers via Docker. Requires Docker Desktop. |
-| **Local only** | Demo from localhost. No cloud deploy. |
+Deployment is a required step. The architecture is:
+- **React frontend** on **Snowflake App Runtime** via `snow app deploy` (no Docker)
+- **FastAPI backend** on **SPCS** as a single-container service (Docker)
+
+The App Runtime frontend proxies `/api/*` requests to the SPCS backend endpoint.
+
+### Session 6: Documentation + Handoff
+
+Generates all presentation and documentation materials:
+- Customer-facing interactive HTML deck (self-contained, presentable)
+- Technical wiki HTML with Mermaid architecture diagrams
+- DEMO_SCRIPT.md with talking points and scenario flow
+- COST_ESTIMATE.md with build and running costs
 
 ---
 

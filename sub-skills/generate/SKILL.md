@@ -464,7 +464,7 @@ Generate a full project README documenting:
 - How to deploy data (`python deploy/deploy.py --all`)
 - How to run locally (`uvicorn` + `npm run dev`)
 - Page inventory with screenshots/descriptions
-- SPCS deployment section (marked as optional/future)
+- App Runtime + SPCS deployment details
 
 ### `docs/ARCHITECTURE.md`
 Generate system architecture documentation covering:
@@ -756,7 +756,7 @@ server {
 Apply substitution map to create compute pool + image repo.
 
 ### `spcs/{slug}-service-spec.yaml`
-Generate multi-container spec (backend + frontend in same pod, localhost comms).
+Generate single-container SPCS spec for backend only. Frontend is deployed via App Runtime (see S6a above).
 
 ### `spcs/spcs_deploy.sh`
 Build → push → CREATE/ALTER SERVICE script.
