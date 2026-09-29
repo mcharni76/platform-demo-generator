@@ -52,9 +52,161 @@ After receiving answers:
 
 ---
 
-## Step 2: Configuration (ask_user_question — smart defaults pre-filled)
+## Step 2: Connection Setup (ALWAYS run before the config form)
 
-Now ask with all derived values as defaults:
+**Before asking any configuration questions**, proactively check available connections:
+
+```bash
+snow connection list
+```
+
+Parse the output into a list of connection names. Then present the interactive choice:
+
+### Case A: Connections exist
+
+```json
+{
+  "questions": [
+    {
+      "header": "Connection",
+      "question": "I found these Snowflake connections on your machine. Which one should this demo use? (needs ACCOUNTADMIN)\n\n{connection_list_formatted}",
+      "multiSelect": false,
+      "options": [
+        {"label": "{conn_1}", "description": "Account: {account_1}, User: {user_1}"},
+        {"label": "{conn_2}", "description": "Account: {account_2}, User: {user_2}"},
+        {"label": "Create a new connection", "description": "I'll walk you through setting one up for this project"}
+      ]
+    }
+  ]
+}
+```
+
+Options are built dynamically from `snow connection list` output (up to 5 connections shown, plus "Create new").
+
+After the user picks a connection, **verify it has ACCOUNTADMIN**:
+
+```bash
+snow sql -c {selected_connection} -q "SELECT CURRENT_ROLE()" --format json
+```
+
+If the role is NOT ACCOUNTADMIN, warn:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Role check",
+      "question": "Connection '{selected_connection}' is using role {current_role}, but this skill needs ACCOUNTADMIN for RBAC setup, ML model training, and Cortex Search service creation.\n\nWhat would you like to do?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Use it anyway", "description": "I'll handle role grants manually -- I know what I'm doing"},
+        {"label": "Switch role first", "description": "Run USE ROLE ACCOUNTADMIN on this connection"},
+        {"label": "Pick a different connection", "description": "Let me choose another one"},
+        {"label": "Create a new connection", "description": "Set up a dedicated connection with ACCOUNTADMIN"}
+      ]
+    }
+  ]
+}
+```
+
+If "Switch role first" -- run `snow sql -c {conn} -q "USE ROLE ACCOUNTADMIN"` and re-verify.
+
+### Case B: No connections found
+
+```json
+{
+  "questions": [
+    {
+      "header": "No connections",
+      "question": "No Snowflake connections found. You need a Snow CLI connection with ACCOUNTADMIN to deploy the demo.\n\nI can help you create one now.",
+      "multiSelect": false,
+      "options": [
+        {"label": "Create connection now", "description": "I'll walk you through snow connection add"},
+        {"label": "I'll set it up myself", "description": "Skip -- I'll configure it and come back"}
+      ]
+    }
+  ]
+}
+```
+
+### Case C: User chooses "Create a new connection"
+
+Walk through connection creation interactively:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Account",
+      "question": "What is your Snowflake account identifier? (e.g., xy12345.us-east-1, or your org-account URL)",
+      "type": "text",
+      "defaultValue": ""
+    },
+    {
+      "header": "Auth method",
+      "question": "How do you authenticate to Snowflake?",
+      "multiSelect": false,
+      "options": [
+        {"label": "SSO (browser)", "description": "Opens a browser for single sign-on -- most common for enterprise accounts"},
+        {"label": "Username + password", "description": "Basic auth with username and password"},
+        {"label": "Key pair", "description": "Private key authentication (service accounts, CI/CD)"}
+      ]
+    }
+  ]
+}
+```
+
+Then create the connection:
+
+```bash
+# SSO:
+snow connection add {slug}-deploy \
+  --account {account} \
+  --authenticator externalbrowser
+
+# Username + password:
+snow connection add {slug}-deploy \
+  --account {account} \
+  --user {username}
+  # Snow CLI will prompt for password securely
+
+# Key pair:
+snow connection add {slug}-deploy \
+  --account {account} \
+  --user {username} \
+  --authenticator SNOWFLAKE_JWT \
+  --private-key-file {path_to_key}
+```
+
+After creation, verify:
+
+```bash
+snow sql -c {slug}-deploy -q "SELECT CURRENT_ROLE(), CURRENT_ACCOUNT(), CURRENT_USER()"
+```
+
+Show the result and confirm:
+
+```json
+{
+  "questions": [
+    {
+      "header": "Verify",
+      "question": "Connection created and verified:\n\n  Connection: {slug}-deploy\n  Account: {account}\n  User: {user}\n  Role: {role}\n\nUse this connection for the demo?",
+      "multiSelect": false,
+      "options": [
+        {"label": "Yes, use this", "description": "Proceed with this connection"},
+        {"label": "Try a different account", "description": "Let me re-enter the account details"}
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## Step 3: Configuration (ask_user_question -- smart defaults pre-filled)
+
+Now ask remaining config fields (connection is already resolved from Step 2):
 
 ```json
 {
@@ -80,12 +232,6 @@ Now ask with all derived values as defaults:
       ]
     },
     {
-      "header": "Connection",
-      "question": "Which Snow CLI connection to use? (needs ACCOUNTADMIN)",
-      "type": "text",
-      "defaultValue": "{slug}-deploy"
-    },
-    {
       "header": "Path",
       "question": "Where should the project be created?",
       "type": "text",
@@ -94,8 +240,6 @@ Now ask with all derived values as defaults:
   ]
 }
 ```
-
-If the user doesn't know their connection name, run `snow connection list` and present the results.
 
 ---
 
@@ -261,19 +405,12 @@ RTL languages (Arabic, Farsi, Urdu) require `dir="rtl"` on text containers + an 
 
 ## Connection Guidance
 
-If the user says "I don't know" for connection:
+Connection setup is handled interactively in Step 2 above. The skill always runs `snow connection list` first and presents options. Key rules:
 
-1. Run: `snow connection list`
-2. Present available connections
-3. Ask user to pick one
-4. Verify it has ACCOUNTADMIN: `snow sql -c {connection} -q "SELECT CURRENT_ROLE()"`
-
-If no suitable connection exists, guide them:
-```
-You'll need to create a connection first:
-  snow connection add {slug}-deploy
-Then set it up with ACCOUNTADMIN privileges.
-```
+- **Always verify ACCOUNTADMIN** before proceeding. The skill needs it for RBAC setup, ML model training, Cortex Search service creation, and Dynamic Table initialization.
+- **SSO (externalbrowser)** is the most common auth method for enterprise accounts. Use it as the default suggestion.
+- **Key pair auth** is for service accounts and CI/CD. If a partner mentions automation or headless deploy, suggest key pair.
+- **Connection name convention**: `{slug}-deploy` (e.g., `aramco-deploy`). This makes it clear which connection belongs to which project.
 
 ---
 
@@ -289,7 +426,8 @@ Then set it up with ACCOUNTADMIN privileges.
 ## Common Mistakes
 
 - **Asking all 9 questions in a text dump**. Use `ask_user_question` tool — it renders as an interactive form, not a wall of text.
-- **Not validating connection exists**. Always verify with `snow connection list` before proceeding.
+- **Not validating connection exists**. Always run `snow connection list` in Step 2 -- never accept a typed connection name without verifying it works.
+- **Skipping ACCOUNTADMIN check**. A connection that works but uses SYSADMIN will fail silently during ML training and Cortex Search creation.
 - **Hardcoding language without checking country**. GCC/Levant/Egypt → `en+ar`, Maghreb → `en+fr`, Turkey → `en+tr`, Pakistan → `en+ur`, Iran → `en+fa`.
 - **Using the full company name as slug**. "Saudi Electricity Company" → `sec` not `saudi-electricity-company`.
 - **Skipping confirmation**. Always show the context block and get explicit "proceed" before research.
