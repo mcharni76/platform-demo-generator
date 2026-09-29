@@ -1,6 +1,6 @@
-# Platform Demo Generator
+# Platform Demo Generator v5.0
 
-**A CoCo skill that generates a production-quality Snowflake Platform Demo for any customer in 5 interactive sessions.**
+**A CoCo skill that generates a production-quality Snowflake Platform Demo for any customer in 6 interactive sessions.**
 
 Built on architecture proven across 3 real presales engagements (NCIM, IMSU, MISK). Produces a full-stack application: FastAPI backend deployed on SPCS, React/Vite frontend deployed on Snowflake App Runtime, interactive pages customized per customer industry and requirements.
 
