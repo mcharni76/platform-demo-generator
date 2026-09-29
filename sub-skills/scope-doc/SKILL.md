@@ -142,17 +142,12 @@ Total estimated demo time: `=SUM(C2:C{N})` minutes.
 | Session | Name | Scope | Target Date | Status | Dependencies | Notes |
 |---------|------|-------|-------------|--------|--------------|-------|
 | S0 | Planning | Scope doc, PLAN.md, memory | {date} | ⬜ Pending | Intake complete | |
-| S0.5 | Data Gen | Synthetic CSVs | {date} | ⬜ Pending | S0 approved | |
-| S1 | Infrastructure | config + deploy SQL | {date} | ⬜ Pending | S0 approved | |
+| S1 | Infrastructure + Data | config + SQL deploy + seed data | {date} | ⬜ Pending | S0 approved | |
 | S2 | Backend | FastAPI + Cortex Search | {date} | ⬜ Pending | S1 complete | |
-| S1 | Snowflake Infra + Data | config + SQL deploy + seed data | {date} | ⬜ Pending | S0 approved | |
-| S2 | Backend | FastAPI + Cortex Search | {date} | ⬜ Pending | S1 complete | |
-| S3 | Frontend | All selected pages + shared | {date} | ⬜ Pending | S2 complete | |
+| S3 | Frontend | All selected pages + shared components | {date} | ⬜ Pending | S2 complete | |
 | S4 | Testing | Unit + integration + E2E | {date} | ⬜ Pending | S3 complete | |
-| S5 | Deploy | App Runtime + SPCS | {date} | ⬜ Pending | S4 complete | |
+| S5 | Deploy | App Runtime frontend + SPCS backend | {date} | ⬜ Pending | S4 complete | Mandatory |
 | S6 | Docs + Handoff | HTML deck + wiki + demo script | {date} | ⬜ Pending | S5 complete | |
-| S5 | Deploy + Demo Pack | SPCS + DEMO_SCRIPT | {date} | ⬜ Pending | S4 complete | |
-| S6 | _Custom (if needed)_ | Custom pages | {date} | ⬜ Pending | S5 complete | Only if custom pages added |
 
 ---
 

@@ -76,7 +76,7 @@ Write `{target_path}/docs/PLAN.md` with the full session breakdown:
 **Customer**: {customer_name} ({slug})
 **Industry**: {industry}
 **Regulatory Context**: {regulation}
-**Deployment Mode**: {local_only | local_then_spcs | spcs_from_start}
+**Deployment Mode**: {local | local+appruntime | local+spcs | appruntime}
 
 ## Session Overview
 

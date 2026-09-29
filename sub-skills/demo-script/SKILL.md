@@ -164,27 +164,9 @@ Demo questions to use:
 
 ---
 
-## Appendix: Full Feature Map
+## Appendix: Feature Map
 
-| Snowflake Feature | Page | Business Value |
-|---|---|---|
-| Unified Data Platform | Platform | Single source of truth |
-| Elastic Compute | Performance | Scale up/down without data movement |
-| Window Functions + PIVOT | Analytics | Complex analytics without external tools |
-| FORECAST / ANOMALY / CLASSIFICATION | ML/AI | Built-in ML — no MLOps overhead |
-| Time Travel | Time Travel | Any-point-in-time recovery and audit |
-| CLONE / UNDROP | Recovery | Zero-downtime DR, no backup management |
-| Cortex AI Functions | Cortex AI | NLP built-in: sentiment, classify, translate |
-| OBJECT_DEPENDENCIES | Lineage | Full data lineage, no external catalog |
-| Data Metric Functions | Quality | Automated quality governance |
-| Result Cache | Optimization | Repeated queries cost nothing |
-| Pay-per-Use | Pricing | Only pay for what you run |
-| Dynamic Tables | Dynamic Tables | Declarative pipelines with automatic refresh |
-| **Cortex Search** | **Policy Intelligence** | **Natural language RAG on regulatory docs** |
-| Dynamic Data Masking | Data Masking | Role-based PII protection, zero code |
-| Data Classification | Data Classification | Auto-classify columns as PII/SENSITIVE |
-| Cortex Analyst | Ask {display_name} | NL-to-SQL for business users |
-| Medallion Architecture | Architecture | End-to-end platform view |
+See `references/demo-pages-catalog.md` for the full feature-to-page mapping with business value hooks.
 ```
 
 ---

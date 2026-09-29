@@ -17,8 +17,7 @@ Run this sub-skill after completing any session S2 or later. It validates the ge
 | S2 (Backend) | Backend starts + health endpoint + SQL compile |
 | S3 (Frontend) | Backend + frontend build + API smoke test |
 | S4 (Testing) | Full test suite pass |
-| S5 (Deploy) | Everything + App Runtime + SPCS validation |
-| S5 (Deploy) | Everything + SPCS spec validation |
+| S5 (Deploy) | Everything + App Runtime / SPCS validation |
 
 ---
 

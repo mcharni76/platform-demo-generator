@@ -148,7 +148,7 @@ Sections:
 
 ### Diagram Generation
 
-Use Mermaid syntax embedded in the HTML. The HTML includes the Mermaid JS library inline (self-contained):
+Use Mermaid syntax embedded in the HTML. Load Mermaid from CDN (requires internet for first render — diagrams are static once rendered):
 
 ```html
 <script type="module">
@@ -156,6 +156,8 @@ Use Mermaid syntax embedded in the HTML. The HTML includes the Mermaid JS librar
   mermaid.initialize({ startOnLoad: true, theme: 'dark' });
 </script>
 ```
+
+Note: The wiki requires internet access for Mermaid rendering. The deck (Deliverable 1) is fully offline-capable.
 
 Architecture diagram:
 ```mermaid

@@ -1,13 +1,14 @@
 ---
 name: platform-demo-generate
-description: "Project scaffolding for platform demo generation. Invoked once per session (S1-S5). Generates files scoped to the current session using MISK as the structural template."
+description: "Project scaffolding for platform demo generation. Invoked per session (S1-S3, S5). Read ONLY the section for the current session."
 ---
 
-# Generate -- Project Scaffolding
+# Generate — Project Scaffolding
 
-This sub-skill is invoked at the start of Sessions 1-5 (after loading the SDLC sub-skill). It generates files for the current session only -- never all sessions at once.
+**Read ONLY the section matching the current session.** This file covers S1 (Infrastructure), S2 (Backend), S3 (Frontend), and S5 (Deploy). Skip all other sections.
 
-Read `references/misk-architecture.md` before generating any file. It contains the full MISK structural reference including critical patterns, gotchas, and exact file content to adapt.
+Read `references/misk-architecture.md` before generating any file.
+Read `references/gotchas-playbook.md` before writing any SQL, Python, or React code.
 
 ---
 
@@ -282,7 +283,7 @@ Present results to user:
 
 ---
 
-## Session 3 — Frontend Core (selected pages)
+## Session 3 — Frontend (all selected pages)
 
 **Important**: Only generate pages listed in `selected_pages.core` from the research context. If a page was deselected during research, skip it entirely (no file, no endpoint, no route).
 
@@ -365,9 +366,9 @@ If any issues -- fix them before committing. Do not leave S3 with broken pages.
 
 ---
 
-## Session 4 — Frontend Advanced (selected pages)
+## Session 3 continued — Advanced Pages
 
-Same approach as Session 3. **Only generate pages listed in `selected_pages.advanced` from the research context.** Skip any page the user did not select. Additionally:
+If there are many pages, split generation into batches within S3. **Only generate pages listed in `selected_pages` from the research context.** Skip any page the user did not select. Additionally:
 
 ### `PageArchitecture.tsx` — Special handling (static page)
 This page has no backend calls. Generate the `LAYERS` array by:
@@ -401,7 +402,7 @@ tables:
 git commit -m "feat: S4 frontend-advanced — {slug}"
 ```
 
-### S4 Checkpoint: Full page inventory review (ask_user_question)
+### S3 Checkpoint: Full page inventory review (ask_user_question)
 
 After S4, the full demo is built. Present the complete page inventory:
 
@@ -409,11 +410,11 @@ After S4, the full demo is built. Present the complete page inventory:
 {
   "questions": [
     {
-      "header": "S4 Review",
+      "header": "S3 Review",
       "question": "All selected pages are now built.\n\n| # | Page | Session | Status |\n|---|------|---------|--------|\n{full page table with build status}\n\nTotal: {N} pages ({core} core + {advanced} advanced)\n\nSemantic model: {slug}_semantic_model.yaml generated with {N} tables.\n\nOpen http://localhost:5300 and navigate through the pages.\n\nReady for S5 (polish + demo pack)?",
       "multiSelect": false,
       "options": [
-        {"label": "All pages work, proceed to S5", "description": "Ready for polish, docs, and demo script"},
+        {"label": "All pages work, proceed to S4 (Testing)", "description": "Ready for test generation"},
         {"label": "A page needs fixing", "description": "I found an issue on a specific page"},
         {"label": "Run full validation", "description": "Run the validate sub-skill for a thorough check"},
         {"label": "Add another page", "description": "I want to include a page I didn't select earlier"}
@@ -425,9 +426,9 @@ After S4, the full demo is built. Present the complete page inventory:
 
 ---
 
-## Session 5 — Polish + Demo Pack
+## Session 5 — Deploy (mandatory)
 
-This session is **local-first**. No Docker, no SPCS. Focus on verifying the app works locally and producing documentation.
+Deploy the demo to Snowflake. This is NOT optional.
 
 ### Verify Local Run
 
@@ -564,9 +565,7 @@ If "No" or "Later" → output DEMO READY block (no S6 prompt).
 
 ---
 
-## Session 6a -- App Runtime Deploy (recommended)
-
-Only run if the user chose "App Runtime" during S5 or explicitly requests it.
+### Deploy Path A: App Runtime (recommended)
 
 App Runtime deploys a Next.js app directly to Snowflake -- no Docker for the frontend, no compute pool, live URL in minutes. The app runs inside Snowflake's security perimeter with SSO and RBAC.
 
@@ -611,7 +610,7 @@ module.exports = nextConfig;
 
 ### Step 2: Deploy FastAPI backend to SPCS (single container)
 
-Use the same `backend/Dockerfile` from the SPCS legacy path (Session 6b below), but deploy only the backend -- no frontend container, no nginx proxy.
+Use the same `backend/Dockerfile` from Deploy Path B below, but deploy only the backend -- no frontend container, no nginx proxy.
 
 ```bash
 # Build and push backend image only
@@ -701,9 +700,9 @@ git commit -m "feat: S6 App Runtime frontend + SPCS backend — {slug}"
 
 ---
 
-## Session 6b — SPCS Deploy (legacy)
+### Deploy Path B: SPCS (legacy)
 
-Only run if the user opted in during S5 or explicitly requests SPCS later.
+Only if the user explicitly requests full SPCS.
 
 ### `backend/Dockerfile`
 ```dockerfile
@@ -858,32 +857,16 @@ Start Demo → fetch all steps at once → reveal one-by-one via "Next Step (2/4
 | Inline color values (#2D6A4F) | Use Tailwind classes: `bg-{slug}-primary` |
 | `dangerouslySetInnerHTML` for SQL | Use `SqlPreviewButton` modal |
 
-### Cortex Agent / Semantic View Gotchas (from knowledge wiki)
+### Cortex / Semantic View / Agent Rules
 
-When generating pages that use Cortex Agent or Cortex Analyst:
-
-- **Cortex Agent**: Use `SNOWFLAKE.CORTEX.DATA_AGENT_RUN(agent_name, question)` — NOT `AGENT!COMPLETE()` method-call syntax (it does not work in SQL)
-- **Semantic View**: Created via `CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML(schema, yaml, verify_only)` — there is no `CREATE SEMANTIC VIEW` DDL
-- **Semantic View YAML**: The verified-queries field key is `sql` (not `verified_query`); `verified_at` must be int64 timestamp or omitted — a date string fails
-- **AI functions in Dynamic Tables**: NEVER put `AI_COMPLETE`, `AI_CLASSIFY`, etc. in a Dynamic Table definition — they re-run on every refresh with non-deterministic output and credit cost. Use stored procedures instead.
-- **AI_COMPLETE**: Use `AI_COMPLETE` (not `SNOWFLAKE.CORTEX.COMPLETE`) — it supports `response_format => {'type':'json','schema':{...}}` for guaranteed valid JSON
-- **GRANT for Cortex**: `GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE {SLUG}_APP_ROLE` requires ACCOUNTADMIN
+See `references/gotchas-playbook.md` entries M9–M18 for the full list. Critical ones:
+- Agent calls: `SNOWFLAKE.CORTEX.DATA_AGENT_RUN(agent, question)` — NOT method-call syntax
+- Semantic View: `CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML(schema, yaml, verify_only)` — no DDL exists
+- NEVER put AI functions in Dynamic Tables
 
 ---
 
-## Key Patterns to Preserve (from references/misk-architecture.md)
-
-1. **`exec_sql()` pattern**: always returns `(list[dict], list[str], float)` -- rows use lowercase keys
-2. **Tab cache**: `Partial<Record<TabKey, DataState>>` prevents re-fetch on tab switch
-3. **Wizard steps**: fetch all steps at once, reveal one-by-one client-side
-4. **No auto-fetch**: every page has an explicit "Load Data" button -- no `useEffect` auto-fetch
-5. **Mock fallback**: ACCOUNT_USAGE views have ~45 min latency -- always add `isIllustrative` flag + amber banner
-6. **Fully qualified SQL**: `{SLUG}_DEMO.{DOMAIN}_DATA.TABLE_NAME` everywhere -- no bare table names
-7. **DIV0()**: never `a / b` in SQL -- always `DIV0(a, b)`
-8. **MERGE not ON CONFLICT**: Snowflake has no `ON CONFLICT` -- use `MERGE INTO`
-9. **Clustering not indexes**: `ALTER TABLE ... CLUSTER BY (col)` not `CREATE INDEX`
-
-## Visualization Rules (MANDATORY -- no JSON dumps)
+## Visualization Rules (MANDATORY — no JSON dumps)
 
 **NEVER render API response data as `JSON.stringify` in a `<pre>` tag.** Every page MUST use the appropriate visualization component from `assets/templates/`:
 

@@ -1,11 +1,36 @@
 ---
 name: platform-demo-intake
-description: "Interactive wizard-style intake for platform demo generation. Uses ask_user_question tool to collect inputs step-by-step with smart defaults, validation, and confirmation."
+description: "Interactive intake for platform demo generation. Supports 3 modes: Quick (one-prompt), Guided (wizard), Expert (full control)."
 ---
 
-# Intake -- Interactive Wizard
+# Intake
 
-Collect all inputs needed to generate the platform demo using a strict step-by-step wizard. Every step uses `ask_user_question`. No step can be skipped. Each step validates its output before proceeding.
+Collect all inputs needed to generate the platform demo. The interaction mode is set by the parent SKILL.md (Quick, Guided, or Expert).
+
+## Mode Handling
+
+**Quick mode**: Extract customer_name, country, industry, and pain points from the user's prompt. Apply industry pack defaults. Skip to Step 6 (confirm). If any required field is missing, ask only for that field.
+
+**Guided mode**: Run the full 7-step wizard below. Every step uses `ask_user_question`.
+
+**Expert mode**: Run the full wizard + additional questions: exact feature list (multi-select per category), page-by-page endpoint customization, custom regulatory mapping, deployment architecture details.
+
+## Industry Starter Packs
+
+When mode is Quick or the user selects "Auto-recommend by industry", apply these defaults:
+
+| Industry | Recommended Pages | Key Features | Narrative |
+|----------|------------------|--------------|-----------|
+| Banking & Finance | Platform, Performance, Analytics, ML (fraud/risk), Cortex AI, Governance (masking, classification, lineage), Quality, Policy Intelligence, Time Travel, Secure Sharing | Cortex AI, ML Functions, Dynamic Tables, Data Governance, Data Sharing, Time Travel | "From fraud detection to regulatory compliance — a governed data platform that protects and serves" |
+| Telecom | Platform, Performance, Analytics (usage/churn), ML (churn prediction), Cortex AI, Quality, Dynamic Tables, Geospatial, Optimization, Cost Management | Elastic Compute, Geospatial/H3, ML Functions, Dynamic Tables, Cost Management | "Real-time network insights, predictive churn, and cost-optimized analytics at telco scale" |
+| Healthcare | Platform, Analytics, ML (patient outcomes), Cortex AI, Governance (HIPAA masking, classification), Quality, Policy Intelligence, Secure Sharing, Time Travel | Data Governance, Cortex AI, Data Sharing, Data Quality, Time Travel | "Patient data protected, insights unlocked — HIPAA-compliant analytics that save lives" |
+| Government | Platform, Performance, Analytics, Governance (full suite), Quality, Lineage, Policy Intelligence, Time Travel, Recovery, Architecture, Secure Sharing | Data Governance, Data Quality, Lineage, Time Travel, Secure Sharing | "Sovereign data, transparent governance, citizen-facing analytics — a national data platform" |
+| Education | Platform, Analytics (enrollment/outcomes), ML (dropout prediction), Cortex AI (Ask University), Quality, Governance, Dynamic Tables | Cortex Analyst, ML Functions, Dynamic Tables, Cortex Search | "From enrollment to graduation — data-driven student success powered by AI" |
+| Retail & FMCG | Platform, Analytics (sales/inventory), ML (demand forecast), Cortex AI, Quality, Dynamic Tables, Geospatial, Marketplace | ML Functions, Dynamic Tables, Geospatial, Marketplace, Cortex AI | "Predict demand, optimize supply, and personalize experience — all on one platform" |
+| Energy & Utilities | Platform, Performance, Analytics, ML (anomaly detection), Cortex AI, Quality, Dynamic Tables, Geospatial, Governance, Time Travel | ML Functions, Dynamic Tables, Geospatial, Data Quality, Time Travel | "Predict failures, optimize distribution, ensure compliance — smart grid meets smart data" |
+| Logistics & Transport | Platform, Analytics, ML (route optimization), Geospatial/H3, Dynamic Tables, Quality, Cortex AI, Optimization | Geospatial/H3, Dynamic Tables, ML Functions, Cortex AI | "From warehouse to doorstep — real-time visibility, predictive logistics, and cost optimization" |
+
+These are starting points. The user can always add/remove pages during the research phase.
 
 ---
 
@@ -187,7 +212,7 @@ Set `context_source: "auto"` -- this tells the research sub-skill to use industr
       "header": "Country",
       "question": "Which country is the customer in?",
       "type": "text",
-      "defaultValue": "Saudi Arabia"
+      "defaultValue": ""
     },
     {
       "header": "Website",
@@ -541,23 +566,12 @@ RTL languages (Arabic, Farsi, Urdu) require `dir="rtl"` on text containers + an 
 
 ---
 
-## Connection Guidance
-
-Connection setup is handled interactively in Step 2 above. The skill always runs `snow connection list` first and presents options. Key rules:
-
-- **Always verify ACCOUNTADMIN** before proceeding. The skill needs it for RBAC setup, ML model training, Cortex Search service creation, and Dynamic Table initialization.
-- **SSO (externalbrowser)** is the most common auth method for enterprise accounts. Use it as the default suggestion.
-- **Key pair auth** is for service accounts and CI/CD. If a partner mentions automation or headless deploy, suggest key pair.
-- **Connection name convention**: `{slug}-deploy` (e.g., `aramco-deploy`). This makes it clear which connection belongs to which project.
-
----
-
 ## Edge Cases
 
-- **User provides all 9 fields in a single message**: Skip the wizard, parse directly, jump to Step 4 (confirm).
+- **Quick mode — all fields in one prompt**: Parse directly, apply industry pack, jump to Step 6 (confirm).
 - **User pastes an RFP**: Extract customer name + country from it, pre-fill remaining fields, run wizard from Step 2.
 - **User says "same as last time"**: Check memory for the most recent `*-demo-project.md`, offer to clone settings.
-- **User says "just use defaults for Aramco"**: Use country-based defaults, fill slug/path/connection automatically.
+- **User says "just use defaults for Aramco"**: Use country-based defaults + industry pack, fill slug/path/connection automatically.
 
 ---
 

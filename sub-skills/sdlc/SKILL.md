@@ -371,29 +371,7 @@ Before starting, read:
 
 ### Step 6: Output Next-Session Prompt in Chat
 
-Output the exact same block in chat as a fenced code block so the user can copy it:
-
-~~~
-========================================
-NEXT SESSION PROMPT — copy and paste this to start Session {N+1}
-========================================
-
-I'm building a Snowflake Platform Demo for {customer_name} ({slug}).
-Project path: {target_path}
-Snowflake connection: {connection_name}
-
-Current status: Session {N} ({session_name}) is COMPLETE.
-Memory file: /memories/{slug}-demo-project.md
-
-Please load the `platform-demo-generator` skill and start Session {N+1}: {next_session_name}.
-
-Session {N+1} scope:
-{bullet list from PLAN.md}
-
-Before starting, read:
-  memory view /memories/{slug}-demo-project.md
-========================================
-~~~
+Output the same prompt block from Step 5 as a fenced code block in chat so the user can copy it for the next session.
 
 ---
 

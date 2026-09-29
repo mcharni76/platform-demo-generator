@@ -172,66 +172,60 @@ Present features in 4 grouped multi-select questions (respecting the 6-option li
 }
 ```
 
-**Question 4: Platform & Operations**
+**Question 4: Platform, Applications & Operations**
 
 ```json
 {
   "questions": [
     {
       "header": "Platform",
-      "question": "Which platform and operations features?",
+      "question": "Which platform, application, and operations features?",
       "multiSelect": true,
       "options": [
         {"label": "Elastic Compute (Performance)", "description": "Cold/warm cache benchmarks on 10M+ rows. Warehouse auto-suspend, multi-cluster scaling."},
-        {"label": "Advanced Analytics (Window/PIVOT)", "description": "7-tab interactive dashboard with drill-down: regional, demographic, trend, skills gap, funnel analysis."},
+        {"label": "Advanced Analytics (Window/PIVOT)", "description": "7-tab interactive dashboard with drill-down: regional, demographic, trend, funnel analysis."},
         {"label": "Architecture Overview", "description": "Clickable medallion architecture diagram. Executive-level platform map with live navigation."},
         {"label": "Query Optimization", "description": "Result cache, partition pruning, ACCOUNT_USAGE analysis. Show zero-cost repeated queries."},
-        {"label": "Cost & Pricing Model", "description": "Pay-per-use credit model explainer. Compute + storage + cloud services breakdown."},
-        {"label": "Secure Data Sharing", "description": "Share data across accounts/orgs without copying. Marketplace listing, reader accounts."}
+        {"label": "Secure Data Sharing & Marketplace", "description": "Share data across accounts without copying. Marketplace listing, reader accounts, data products."},
+        {"label": "Cost Management", "description": "Credit model, compute + storage breakdown, resource monitors, budget alerts."}
       ]
     }
   ]
 }
 ```
 
+**Question 5: Application Development (if Expert mode or user selects 'App Dev' interest)**
+
+```json
+{
+  "questions": [
+    {
+      "header": "App Dev",
+      "question": "Include application development capabilities?",
+      "multiSelect": true,
+      "options": [
+        {"label": "App Runtime (Next.js)", "description": "Deploy the demo frontend as a Snowflake-native app. SSO, RBAC, no Docker. snow app deploy."},
+        {"label": "SPCS (Container Services)", "description": "Run custom Docker containers in Snowflake. GPU workloads, custom models, FastAPI backend."},
+        {"label": "Snowpark (Python/Java/Scala)", "description": "Data engineering + ML in Python, running inside Snowflake compute. No data movement."},
+        {"label": "Streamlit in Snowflake", "description": "Quick interactive data app. Embedded in Snowsight, no infra. Good for data exploration pages."},
+        {"label": "Native App Framework", "description": "Package the demo as a distributable Snowflake Native App. Install with one click, runs in consumer account."},
+        {"label": "External Functions / APIs", "description": "Call external APIs from SQL. Webhook integration, external model inference, third-party enrichment."}
+      ]
+    }
+  ]
+}
+```
+
+Only ask Question 5 if the user is in Expert mode, or if they explicitly mentioned app development, native apps, or container services. In Quick/Guided mode, App Runtime and SPCS are implied by the architecture.
+
 ### Feature-to-Page Mapping
 
-Each selected feature maps to one or more demo pages:
-
-| Feature | Demo page(s) |
-|---------|-------------|
-| Cortex Analyst (NL-to-SQL) | Ask {Customer} |
-| Cortex AI Functions | Cortex AI |
-| Cortex Agent (Agentic AI) | Cortex Agent |
-| ML Functions | ML/AI |
-| Document AI | Document AI |
-| Cortex Search (RAG) | Policy Intelligence |
-| Dynamic Tables | Dynamic Tables |
-| Tasks + Streams (CDC) | Tasks + Streams |
-| Snowpipe Streaming | Streaming |
-| Iceberg Tables | Iceberg Tables |
-| Geospatial (H3) | Analytics (H3 tab + MapLibre map) |
-| Snowflake Notebooks | Notebooks |
-| Dynamic Data Masking | Data Masking |
-| Data Classification | Data Classification |
-| Policy Intelligence (RAG) | Policy Intelligence |
-| Data Lineage | Lineage |
-| Data Quality (DMFs) | Quality |
-| Time Travel + Recovery | Time Travel + Recovery |
-| Elastic Compute | Performance |
-| Advanced Analytics | Analytics |
-| Architecture Overview | Architecture |
-| Query Optimization | Optimization |
-| Cost & Pricing Model | Pricing |
-| Secure Data Sharing | _(custom page -- not in catalog yet, flagged for S4 custom)_ |
-
-Features not in the catalog (like Secure Data Sharing) are flagged and can be built as custom pages in Session 4+.
+See `references/demo-pages-catalog.md` for the full mapping. Each selected feature maps to one or more demo pages. The catalog is the authoritative source — do not duplicate it here.
 
 ### How selections drive the rest of the flow
 
-- **Pages in Step 6**: only pages mapped to selected features are shown as RECOMMENDED
-- **Storytelling arc** (Step 4): narrative thread connects the selected features into a journey
-- **Demo script** (S5): talking points lead with feature-aligned scenarios
+- **Pages**: only pages mapped to selected features are generated
+- **Storytelling arc** (Step 4): narrative thread connects the selected features into a business journey
 - **Data generation**: only data columns needed for selected features are generated (e.g., no PII columns if masking not selected)
 
 ---
@@ -515,25 +509,11 @@ Then load `sub-skills/plan/SKILL.md`.
 
 ---
 
-## Storytelling Principles (for reference)
-
-1. **Start with THEIR world, not Snowflake's features.** Open with their pain, not our product.
-2. **Every page must answer "so what?"** If you can't connect a page to a stated pain point, it's filler.
-3. **Build tension then resolve.** Time Travel works because you CORRUPT data first, THEN restore it.
-4. **End with empowerment.** Ask {Customer} shows ANYONE can use the platform — not just data engineers.
-5. **Never show more than 12 pages in one demo.** If 23 are available, pick the strongest 10-12 for the flow.
-6. **The architecture page is the MAP.** Start there so the audience knows where they are throughout.
-7. **Group by theme, not by Snowflake feature.** "Governance" (masking + classification + policy) > showing them as 3 unrelated pages.
-
----
-
 ## Common Mistakes
 
-- **Showing all pages.** A demo is not a feature dump. Pick 10-12 that tell a story.
-- **Not reading the RFP/MoM.** If the document says "real-time ingestion" and you skip Streaming, you lose credibility.
-- **Ordering by session (S3 then S4) instead of by story.** The demo flow is NOT the build order.
-- **Skipping gap analysis.** If the user selects Masking but not Classification, they'll get asked "how did you know what to mask?" — suggest it proactively.
-- **Generic hooks.** "This shows performance" is weak. "{customer_name} queries 10M {entity} records in 0.8 seconds — no pre-aggregation" is strong.
-- **No narrative thread.** Without a connecting story, the demo is 12 disconnected features.
-- **Assuming web_fetch returns useful content.** Corporate websites are often marketing fluff. If <3 pain points found, ask the user directly for industry, key entities, and pain points.
-- **Trying to auto-detect brand color from web_fetch.** web_fetch returns text, not CSS. Always ask the user for brand color — fallback is Snowflake blue.
+- **Showing all pages.** Pick 10-12 that tell a story for a 60-min demo. More ≠ better.
+- **Not reading the RFP/MoM.** If the document says "real-time ingestion" and you skip Dynamic Tables, you lose credibility.
+- **Generic hooks.** "This shows performance" is weak. "{customer_name} queries 10M {entity} records in 0.8 seconds" is strong.
+- **No narrative thread.** Without a connecting story, the demo is disconnected features. Order by story, not by build session.
+- **Assuming web_fetch returns useful content.** Corporate sites are marketing fluff. If <3 pain points found, ask the user directly.
+- **Skipping gap analysis.** If the user selects Masking but not Classification, suggest it — they complement each other.

@@ -132,11 +132,19 @@ Create `{target_path}/scripts/generate_seed_data.py` using the confirmed entity 
    LAST_NAMES = ["Al-Rashid", "Al-Qahtani", ...]  # adapted per country
    ```
 
-4. **PII columns** (critical for Data Masking page):
+4. **PII columns** (critical for Data Masking page — adapt format to customer's country):
    ```python
-   def fake_national_id(): return f"{RNG.randint(1,2)}{RNG.randint(10,99)}{RNG.randint(1000000,9999999)}"
-   def fake_email(first, last): return f"{first.lower()}.{last.lower()}@{RNG.choice(['gmail.com','outlook.com','company.sa'])}"
-   def fake_phone(): return f"+966{RNG.randint(500000000,599999999)}"
+   # Country-aware PII generation — derive from intake context
+   PII_FORMATS = {
+       'KSA': {'phone': '+966-5XXXXXXXX', 'id': '1XXXXXXXXX', 'email_domain': 'company.sa'},
+       'UAE': {'phone': '+971-5XXXXXXXX', 'id': '784-XXXX-XXXXXXX-X', 'email_domain': 'company.ae'},
+       'Turkey': {'phone': '+90-5XXXXXXXX', 'id': 'XXXXXXXXXXX', 'email_domain': 'company.com.tr'},
+       'Egypt': {'phone': '+20-1XXXXXXXX', 'id': 'XXXXXXXXXXXXXX', 'email_domain': 'company.eg'},
+       'South Africa': {'phone': '+27-6XXXXXXXX', 'id': 'YYMMDDXXXXXXX', 'email_domain': 'company.co.za'},
+       'USA': {'phone': '+1-XXXXXXXXXX', 'id': 'XXX-XX-XXXX', 'email_domain': 'company.com'},
+       'default': {'phone': '+XX-XXXXXXXXX', 'id': 'XXXXXXXXXXX', 'email_domain': 'company.com'},
+   }
+   # Generate realistic-looking fake data — never real PII
    ```
 
 5. **Valid foreign keys** (every secondary entity FK references a real primary entity ID):
