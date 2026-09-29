@@ -3,20 +3,33 @@
  * Each card has its OWN state, load button, and results.
  * Cards are fully independent — loading one does NOT affect others.
  *
- * Replace: {cards_config}, {endpoints}
+ * Button states per card:
+ *   Not loaded:  Play icon + "Run"
+ *   Loading:     Loader2 spinning + "Running..."
+ *   Loaded:      RefreshCw icon + "Re-run"
+ *   NEVER: "Done", "Complete", "Finished"
+ *
+ * Post-load: each card shows chart/KPI/table — NEVER JSON.stringify
+ *
+ * Replace: {cards_config}, {endpoints}, {slug}
  */
 
 import { useState } from 'react'
+import { Play, RefreshCw, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import ScenarioHeader from '../shared/ScenarioHeader'
-// import { apiFetch } from '../../lib/api'
-// import SqlPreviewButton from '../shared/SqlPreviewButton'
+// import ChartCard from '../shared/ChartCard'
+// import KPIGrid from '../shared/KPIGrid'
 // import QueryTimeBadge from '../shared/QueryTimeBadge'
+// import SqlPreviewButton from '../shared/SqlPreviewButton'
+// import FeatureBadge from '../shared/FeatureBadge'
+// import { apiFetch } from '../../lib/api'
 
 interface CardState {
-  loading: boolean
   data: any | null
   error: string | null
   ms: number | null
+  sql: string | null
 }
 
 interface CardConfig {
@@ -33,41 +46,50 @@ const CARDS: CardConfig[] = [
   { id: 'card3', title: 'Card 3 Title', description: 'What this demonstrates', endpoint: '/api/page/card3', feature: 'FEATURE_3' },
 ]
 
-export default function NCIMCardPage({ presenterMode = false }: { presenterMode?: boolean }) {
+interface PageProps {
+  presenterMode?: boolean
+}
+
+export default function NCIMCardPage({ presenterMode = false }: PageProps) {
   const [cardStates, setCardStates] = useState<Record<string, CardState>>(
-    Object.fromEntries(CARDS.map(c => [c.id, { loading: false, data: null, error: null, ms: null }]))
+    Object.fromEntries(CARDS.map(c => [c.id, { data: null, error: null, ms: null, sql: null }]))
   )
+  const [loadingCard, setLoadingCard] = useState<string | null>(null)
 
   const loadCard = async (card: CardConfig) => {
-    setCardStates(prev => ({
-      ...prev,
-      [card.id]: { loading: true, data: null, error: null, ms: null },
-    }))
+    setLoadingCard(card.id)
     try {
       // const res = await apiFetch(card.endpoint)
-      const res = { result: `Data from ${card.title}`, execution_time_ms: 120.3 }
+      const res = { result: 'chart data', execution_time_ms: 120.3, sql: 'SELECT ...' }
       setCardStates(prev => ({
         ...prev,
-        [card.id]: { loading: false, data: res, error: null, ms: res.execution_time_ms },
+        [card.id]: { data: res, error: null, ms: res.execution_time_ms, sql: res.sql },
       }))
     } catch (e) {
       setCardStates(prev => ({
         ...prev,
-        [card.id]: { loading: false, data: null, error: String(e), ms: null },
+        [card.id]: { data: null, error: String(e), ms: null, sql: null },
       }))
     }
+    setLoadingCard(null)
   }
 
   return (
     <div className="space-y-6">
-      {/* Scenario Header — domain-specific, NEVER generic */}
+      {/* === HEADER ZONE === */}
+      <div>
+        <h2 className="text-xl font-bold">{'{Page Title}'}</h2>
+        <p className="text-sm text-gray-400 mt-0.5">{'{subtitle — e.g. "Run each capability independently"}'}</p>
+      </div>
+
+      {/* === SCENARIO HEADER === */}
       <ScenarioHeader
-        painPoint="{pain point from research}"
+        painPoint="{pain point}"
         businessValue="{business value}"
         snowflakeFeature="{feature}"
-        expectedOutcome="{what to watch — e.g. 'Each card demonstrates an independent ML capability. Run them in any order.'}"
+        expectedOutcome="{what to watch — e.g. 'Each card demonstrates an independent capability. Run them in any order.'}"
         presenterMode={presenterMode}
-        talkingPoint="{demo hook from catalog}"
+        talkingPoint="{hook from catalog}"
         demoSteps={[
           "Run Card 1 — {explain what it shows}",
           "Run Card 2 — {explain what it shows}",
@@ -76,37 +98,67 @@ export default function NCIMCardPage({ presenterMode = false }: { presenterMode?
         transition="{transition to next page}"
       />
 
-      {/* Independent Cards */}
+      {/* === INDEPENDENT CARDS === */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {CARDS.map(card => {
           const state = cardStates[card.id]
+          const isLoading = loadingCard === card.id
+          const loaded = !!state.data
+
           return (
-            <div key={card.id} className="border rounded-lg p-4 dark:border-gray-700 space-y-3">
+            <div key={card.id} className="border border-gray-700 rounded-xl p-5 space-y-4">
+              {/* Card header */}
               <div>
-                <h3 className="font-semibold">{card.title}</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">{card.description}</p>
-                <span className="inline-block mt-1 px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded">
-                  {card.feature}
-                </span>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-sm">{card.title}</h3>
+                  <span className="px-2 py-0.5 text-[10px] uppercase tracking-wider font-bold bg-{slug}-primary/10 text-{slug}-primary rounded">
+                    {card.feature}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-400 mt-1">{card.description}</p>
               </div>
 
+              {/* Card action button — Play → Spinner → Refresh */}
               <button
                 onClick={() => loadCard(card)}
-                disabled={state.loading}
-                className="w-full px-3 py-2 rounded bg-{slug}-primary text-white text-sm disabled:opacity-50"
+                disabled={isLoading}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-{slug}-primary text-white text-sm font-bold hover:opacity-90 transition disabled:opacity-50"
               >
-                {state.loading ? 'Running...' : state.data ? 'Run Again' : 'Run'}
+                {isLoading
+                  ? <Loader2 className="w-4 h-4 animate-spin" />
+                  : loaded
+                  ? <RefreshCw className="w-4 h-4" />
+                  : <Play className="w-4 h-4" />}
+                {isLoading ? 'Running...' : loaded ? 'Re-run' : 'Run'}
               </button>
 
+              {/* Error state */}
               {state.error && (
-                <p className="text-red-500 text-sm">{state.error}</p>
+                <div className="text-red-400 text-xs bg-red-950/30 rounded p-2">
+                  {state.error}
+                </div>
               )}
 
-              {state.data && (
-                <div className="bg-gray-50 dark:bg-gray-800 rounded p-2 text-xs">
-                  {/* <QueryTimeBadge ms={state.ms} /> */}
-                  <pre className="overflow-auto">{JSON.stringify(state.data, null, 2)}</pre>
-                </div>
+              {/* Post-load result — NEVER JSON.stringify
+               * Use the correct visualization for this card:
+               * - ChartCard for bar/line/area/pie
+               * - KPIGrid for key metrics
+               * - Styled table for tabular data
+               */}
+              {loaded && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-2"
+                >
+                  {state.ms && (
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-900/30 text-green-400 font-mono">
+                      {state.ms.toFixed(1)}ms
+                    </span>
+                  )}
+                  {/* <ChartCard type="bar" data={state.data.rows} xKey="name" yKey="value" title={card.title} /> */}
+                </motion.div>
               )}
             </div>
           )

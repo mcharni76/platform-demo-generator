@@ -72,6 +72,11 @@ Battle-tested gotchas and solutions from NCIM (Government/Municipal), IMSU (Educ
 | F6 | SqlPreviewButton z-index | Use `z-50` | Use `fixed inset-0 z-[100]` | Modal hidden behind sidebar |
 | F7 | manualChunks vendor empty | Split react/react-dom | These may already be in framer-motion bundle | Warning but harmless |
 | F8 | TS interface staleness | Keep old interface | Always sync api.ts interfaces with backend response | Type errors or silent bugs |
+| F9 | "Done" button post-load | Show "Done" or "Loaded ✓" after data loads | Button becomes RefreshCw + "Refresh" — never a terminal state | Dead UI, user can't re-run |
+| F10 | JSON.stringify in <pre> | `<pre>{JSON.stringify(data)}</pre>` | Use ChartCard (Recharts), KPIGrid, or styled table component | Demo looks broken — raw JSON dump |
+| F11 | Missing framer-motion | Import motion but don't install | `framer-motion` must be in package.json dependencies | Build error or no animations |
+| F12 | HeroSection usage | Import and use HeroSection | Use ScenarioHeader instead (HeroSection is dead code in both reference projects) | Inconsistent UX |
+| F13 | Auto-navigate after load | Route to next page after data loads | Stay on current page, show results with Refresh button | User loses context |
 
 ---
 
@@ -87,6 +92,16 @@ Battle-tested gotchas and solutions from NCIM (Government/Municipal), IMSU (Educ
 | M6 | Relationships missing PK | Only set `unique: true` on dim | Must have explicit `primary_key: columns: [col]` | Validation fails |
 | M7 | Relationship fields | Add `join_type` / `relationship_type` | Omit — these are auto-inferred | Validation warning |
 | M8 | Verified queries | Omit `name` field | Every VQR needs a `name` string | Validation error |
+| M9 | Cortex Agent DDL | `AGENT!COMPLETE()` method syntax | `SNOWFLAKE.CORTEX.DATA_AGENT_RUN(agent, question)` — both args must be string constants | SQL error — method syntax does not work |
+| M10 | Agent in UDF | Call agent from a UDF | Wrap in a stored procedure with `SELECT ... INTO :v_result` | UDF cannot call agent methods |
+| M11 | Semantic View DDL | `CREATE SEMANTIC VIEW` | `CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML(schema, yaml, verify_only)` | No such DDL exists |
+| M12 | VQR verified_at field | `verified_at: "2026-04-25"` (date string) | `verified_at: 1745539200` (int64 timestamp) or omit entirely | YAML validation fails |
+| M13 | VQR sql field key | `verified_query: "SELECT ..."` | `sql: "SELECT ..."` | VQR silently ignored |
+| M14 | AI function in DT | `CREATE DYNAMIC TABLE AS SELECT AI_COMPLETE(...)` | Use stored procedure — AI functions are non-deterministic + credit cost per refresh | Runaway credits, inconsistent data |
+| M15 | AI_COMPLETE syntax | `SNOWFLAKE.CORTEX.COMPLETE(model, prompt)` | `AI_COMPLETE(model, prompt)` — supports `response_format` for guaranteed JSON | Missing JSON output guarantee |
+| M16 | CORTEX_USER grant | Grant with project admin role | `GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE ...` requires ACCOUNTADMIN | Permission denied |
+| M17 | Cross-region embed model | Use `EMBED_TEXT_768` in all regions | Unavailable in `GCP_ME_CENTRAL2` — use `CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION'` | Silent query failures |
+| M18 | Cortex cost visibility | Check ACCOUNT_USAGE immediately | `CORTEX_FUNCTIONS_USAGE_HISTORY` has 45 min – 3 h latency | Empty cost data |
 
 ---
 
@@ -125,3 +140,7 @@ Battle-tested gotchas and solutions from NCIM (Government/Municipal), IMSU (Educ
 | ML endpoint returns wrong predictions | Check for feature leakage in training view |
 | COPY INTO loads 0 rows | Add `FORCE = TRUE` (load history blocks retry) |
 | Demo page shows "Illustrative Data" banner | Expected — ACCOUNT_USAGE latency, not a bug |
+| Page shows JSON dump instead of charts | Missing recharts/framer-motion in package.json, or page uses JSON.stringify |
+| "Done" button on every page | Template bug — button must be Play → Spinner → Refresh (RefreshCw) |
+| Cortex Agent call fails in SQL | Use DATA_AGENT_RUN(), not AGENT!COMPLETE() method syntax |
+| Semantic View creation fails | Use SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML, not CREATE SEMANTIC VIEW |

@@ -1,7 +1,7 @@
 ---
 name: platform-demo-generator
-title: Platform Demo Builder v5.0
-summary: Generate a customized Snowflake Platform Demo for any customer in 6 structured sessions. v5.0.
+title: Platform Demo Builder v5.1
+summary: Generate a customized Snowflake Platform Demo for any customer in 6 structured sessions. v5.1.
 description: |
   Build a production-quality Snowflake Platform Demo customized per customer. Pages are selected
   dynamically based on customer industry, pain points, and use case requirements — drawn from a

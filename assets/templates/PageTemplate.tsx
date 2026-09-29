@@ -1,21 +1,32 @@
 /**
- * PageTemplate.tsx — Standard page component pattern for platform demos.
- * Every page follows this exact structure:
- *   1. ScenarioHeader (business context — ALWAYS visible, domain-specific)
- *   2. Load button (NO auto-fetch)
- *   3. Visualization (chart/table/graph — NEVER JSON.stringify)
+ * PageTemplate.tsx — Standard single-action page pattern.
+ * Based on the proven UX from MISK and Imam University projects.
+ *
+ * Structure:
+ *   1. Header zone (title + FeatureBadge + QueryTimeBadge + SqlPreviewButton + action button)
+ *   2. ScenarioHeader (business context — always visible pre-load, collapses post-load)
+ *   3. Empty state card (pre-load — contextual icon + CTA)
+ *   4. Post-load visualization (charts/KPIs/tables — NEVER JSON.stringify)
+ *
+ * Button states:
+ *   Initial:  Play icon  + action verb ("Run Benchmark", "Explore Platform")
+ *   Loading:  Loader2 spinning + same label
+ *   Loaded:   RefreshCw icon + "Refresh"
+ *   NEVER: "Done", "Loaded ✓", "Complete"
  *
  * Replace ALL {placeholders} with domain-specific content.
- * The ScenarioHeader props come from the research context story arcs.
  */
 
 import { useState } from 'react'
+import { Play, RefreshCw, Loader2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import ScenarioHeader from '../shared/ScenarioHeader'
 // import ChartCard from '../shared/ChartCard'
 // import KPIGrid from '../shared/KPIGrid'
-// import DrillDownTable from '../shared/DrillDownTable'
-// import SqlPreviewButton from '../shared/SqlPreviewButton'
+// import PanelCard from '../shared/PanelCard'
 // import QueryTimeBadge from '../shared/QueryTimeBadge'
+// import SqlPreviewButton from '../shared/SqlPreviewButton'
+// import FeatureBadge from '../shared/FeatureBadge'
 // import { apiFetch } from '../../lib/api'
 
 interface DataState<T> {
@@ -23,78 +34,127 @@ interface DataState<T> {
   data: T | null
   error: string | null
   ms: number | null
+  sql: string | null
 }
 
-interface PageTemplateProps {
+interface PageProps {
   presenterMode?: boolean
 }
 
-export default function PageTemplate({ presenterMode = false }: PageTemplateProps) {
+export default function PageTemplate({ presenterMode = false }: PageProps) {
   const [state, setState] = useState<DataState<any>>({
-    loading: false,
-    data: null,
-    error: null,
-    ms: null,
+    loading: false, data: null, error: null, ms: null, sql: null,
   })
 
+  const loaded = !!state.data
+  const loading = state.loading
+
   const load = async () => {
-    setState({ loading: true, data: null, error: null, ms: null })
+    setState({ loading: true, data: null, error: null, ms: null, sql: null })
     try {
       // const res = await apiFetch<ResponseType>('/api/{endpoint}')
-      // setState({ loading: false, data: res, error: null, ms: res.execution_time_ms })
-      setState({ loading: false, data: { placeholder: true }, error: null, ms: 42.5 })
+      const res = { rows: [], execution_time_ms: 42.5, sql: 'SELECT ...' }
+      setState({ loading: false, data: res, error: null, ms: res.execution_time_ms, sql: res.sql })
     } catch (e) {
-      setState({ loading: false, data: null, error: String(e), ms: null })
+      setState({ loading: false, data: null, error: String(e), ms: null, sql: null })
     }
   }
 
   return (
     <div className="space-y-6">
-      {/* SCENARIO HEADER — mandatory on every page.
-       * All props must be filled with domain-specific content from the research context.
-       * Generic text like "This shows performance" is NOT acceptable.
-       */}
+      {/* === HEADER ZONE === */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold">{'{Page Title}'}</h2>
+          <p className="text-sm text-gray-400 mt-0.5">{'{One-line subtitle}'}</p>
+          {/* <FeatureBadge feature="{Snowflake Feature}" /> */}
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Show timing + SQL only AFTER data loads */}
+          {loaded && state.ms && (
+            <span className="text-xs px-2 py-1 rounded bg-green-900/30 text-green-400 font-mono">
+              {state.ms.toFixed(1)}ms
+            </span>
+          )}
+          {/* {loaded && state.sql && <SqlPreviewButton sql={state.sql} />} */}
+
+          {/* ACTION BUTTON — the only button on the page */}
+          <button
+            onClick={load}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 bg-{slug}-primary text-white text-sm font-bold rounded-lg hover:opacity-90 transition disabled:opacity-50"
+          >
+            {loading
+              ? <Loader2 className="w-4 h-4 animate-spin" />
+              : loaded
+              ? <RefreshCw className="w-4 h-4" />
+              : <Play className="w-4 h-4" />}
+            {loaded ? 'Refresh' : '{Action Verb}'}
+          </button>
+        </div>
+      </div>
+
+      {/* === SCENARIO HEADER (business context) === */}
       <ScenarioHeader
-        painPoint="{customer_name} struggles with {specific pain point from research}."
-        businessValue="{One-sentence business outcome: what changes for the customer after seeing this.}"
+        painPoint="{customer-specific pain point}"
+        businessValue="{concrete business outcome}"
         snowflakeFeature="{Snowflake Feature Name}"
-        expectedOutcome="{What the audience should see after clicking Load — be specific: '10M records in under 2 seconds' not 'fast query'}"
+        expectedOutcome="{what to watch after clicking the button}"
         presenterMode={presenterMode}
-        talkingPoint="{The one-liner to say out loud — from demo-pages-catalog.md Demo Hook}"
+        talkingPoint="{one-liner hook}"
         demoSteps={[
-          "Click 'Load Data' — point out the query time badge",
-          "{Highlight the key metric or chart — explain what it means for the customer}",
-          "{Show the SQL preview — explain the Snowflake feature powering it}",
+          "Click '{Action Verb}' — point out the query time",
+          "{Highlight the key metric or chart}",
+          "{Explain the Snowflake feature powering it}",
         ]}
-        transition="{What to say before navigating to the next page — connects this page's story to the next}"
+        transition="{transition to next page}"
       />
 
-      {/* Load Button */}
-      <button
-        onClick={load}
-        disabled={state.loading}
-        className="px-4 py-2 rounded bg-{slug}-primary text-white hover:opacity-90 disabled:opacity-50"
-      >
-        {state.loading ? 'Loading...' : 'Load Data'}
-      </button>
+      {/* === EMPTY STATE (pre-load) === */}
+      {!loaded && !loading && (
+        <div className="border border-dashed border-gray-700 rounded-xl p-10 text-center">
+          {/* Use contextual icon: Database, BarChart3, GitBranch, Shield, etc. */}
+          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-{slug}-primary/10 flex items-center justify-center">
+            <Play className="w-6 h-6 text-{slug}-primary/40" />
+          </div>
+          <p className="text-sm text-gray-500">
+            Click <span className="font-bold text-{slug}-primary">{'{Action Verb}'}</span> to {'{describe what happens}'}
+          </p>
+        </div>
+      )}
 
-      {/* Error */}
+      {/* === LOADING STATE === */}
+      {loading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-{slug}-primary" />
+        </div>
+      )}
+
+      {/* === ERROR STATE === */}
       {state.error && (
-        <div className="text-red-500 bg-red-50 dark:bg-red-950 p-3 rounded">
+        <div className="border border-red-500/30 bg-red-950/30 rounded-lg p-4 text-red-400 text-sm">
           {state.error}
         </div>
       )}
 
-      {/* VISUALIZATION — use the right component for this page.
-       * See generate/SKILL.md visualization rules for the page-to-component mapping.
-       * NEVER use JSON.stringify. */}
-      {state.data && (
-        <div className="space-y-4">
-          {/* <QueryTimeBadge ms={state.ms} /> */}
-          {/* <SqlPreviewButton sql="SELECT ..." /> */}
+      {/* === POST-LOAD CONTENT (animated fade-in) ===
+       * Use the correct visualization for this page:
+       * - KPIGrid for summary metrics
+       * - ChartCard for bar/line/area/pie charts
+       * - DrillDownTable for clickable data tables
+       * - DataQualityPanel for quality metrics
+       * NEVER use JSON.stringify. NEVER show a "Done" button.
+       */}
+      {loaded && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="space-y-6"
+        >
           {/* <KPIGrid kpis={formatKPIs(state.data)} /> */}
-          {/* <ChartCard type="bar" data={state.data.breakdown} xKey="category" yKey="count" title="Distribution" /> */}
-        </div>
+          {/* <ChartCard type="bar" data={state.data.rows} xKey="name" yKey="value" title="..." /> */}
+        </motion.div>
       )}
     </div>
   )

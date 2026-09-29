@@ -1,4 +1,4 @@
-# Platform Demo Generator v5.0
+# Platform Demo Generator v5.1
 
 **A CoCo skill that generates a production-quality Snowflake Platform Demo for any customer in 6 interactive sessions.**
 

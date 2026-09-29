@@ -774,6 +774,103 @@ git commit -m "feat: S6 SPCS deployment — {slug}"
 
 ---
 
+## UX Standard (MANDATORY — enforced from MISK + Imam University reference projects)
+
+The following UX patterns are the **proven standard** extracted from both MISK and Imam University projects. Every generated page MUST follow these patterns exactly. Deviations will produce a demo that looks broken.
+
+### Button State Machine (the only acceptable pattern)
+
+```
+Initial:    <Play className="w-4 h-4" />     + "{Action Verb}"     → bg-{slug}-primary
+Loading:    <Loader2 className="w-4 h-4 animate-spin" />  + same label   → disabled:opacity-50
+Loaded:     <RefreshCw className="w-4 h-4" />  + "Refresh"          → same class
+```
+
+**NEVER generate**: "Done", "Loaded ✓", "Complete", "Finished", "OK", or any terminal state button. The button always allows re-run via "Refresh".
+
+### Pre-Load State (what the user sees before clicking)
+
+```tsx
+{/* 1. Header zone: title + FeatureBadge + action button (right-aligned) */}
+{/* 2. ScenarioHeader: business context (always visible, collapses post-load) */}
+{/* 3. Empty state card: contextual icon + CTA text */}
+```
+
+The empty state uses a **contextual icon** matching the page theme:
+| Page type | Icon | CTA text pattern |
+|-----------|------|-----------------|
+| Platform/Overview | `Database` | Click **Explore Platform** to load infrastructure metrics |
+| Performance | `Zap` | Click **Run Benchmark** to measure query performance |
+| Analytics | `BarChart3` | Click **Load Data** to explore enrollment analytics |
+| ML/AI | `Brain` | Run each card independently to see ML in action |
+| Lineage | `GitBranch` | Click **Trace Lineage** to map data flow |
+| Time Travel | `Clock` | Click **Start Demo** to begin the recovery walkthrough |
+| Quality | `Shield` | Click **Run Quality Check** to scan data metrics |
+| Governance | `Lock` | Click **Run** to demonstrate the policy |
+
+### Post-Load State (animated reveal)
+
+```tsx
+{loaded && (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.3 }}
+    className="space-y-6"
+  >
+    {/* Visualizations here — NEVER JSON.stringify */}
+  </motion.div>
+)}
+```
+
+After data loads, the header zone gains two new elements:
+- `QueryTimeBadge` — shows execution time (green pill, font-mono)
+- `SqlPreviewButton` — opens modal with the SQL that ran (copy button inside)
+
+### Tab Cache Pattern (multi-tab pages)
+
+```tsx
+const [cache, setCache] = useState<Partial<Record<TabKey, DataState>>>({})
+```
+
+Green dot `●` on tab label indicates cached data. Switching tabs preserves loaded data. Each tab has its own Load button (no auto-fetch on tab switch).
+
+### Card Pattern (independent feature cards)
+
+Each card in NCIMCardPage has its own:
+- Play → Loader2 → RefreshCw button
+- Independent loading state
+- Own visualization (chart/table, never JSON)
+
+### Wizard Pattern (step-by-step pages)
+
+Start Demo → fetch all steps at once → reveal one-by-one via "Next Step (2/4)" → "All steps completed!" with CheckCircle + "Reset Demo" button.
+
+### Anti-patterns to NEVER generate
+
+| Anti-pattern | What to do instead |
+|---|---|
+| `JSON.stringify(data, null, 2)` in a `<pre>` tag | Use ChartCard, KPIGrid, or styled table |
+| "Done" button after loading | Use RefreshCw + "Refresh" |
+| "Loaded ✓" terminal state | Use RefreshCw + "Refresh" |
+| Auto-fetch in `useEffect` | Explicit button click required |
+| Generic `HeroSection` component | Use `ScenarioHeader` with all props filled |
+| Inline color values (#2D6A4F) | Use Tailwind classes: `bg-{slug}-primary` |
+| `dangerouslySetInnerHTML` for SQL | Use `SqlPreviewButton` modal |
+
+### Cortex Agent / Semantic View Gotchas (from knowledge wiki)
+
+When generating pages that use Cortex Agent or Cortex Analyst:
+
+- **Cortex Agent**: Use `SNOWFLAKE.CORTEX.DATA_AGENT_RUN(agent_name, question)` — NOT `AGENT!COMPLETE()` method-call syntax (it does not work in SQL)
+- **Semantic View**: Created via `CALL SYSTEM$CREATE_SEMANTIC_VIEW_FROM_YAML(schema, yaml, verify_only)` — there is no `CREATE SEMANTIC VIEW` DDL
+- **Semantic View YAML**: The verified-queries field key is `sql` (not `verified_query`); `verified_at` must be int64 timestamp or omitted — a date string fails
+- **AI functions in Dynamic Tables**: NEVER put `AI_COMPLETE`, `AI_CLASSIFY`, etc. in a Dynamic Table definition — they re-run on every refresh with non-deterministic output and credit cost. Use stored procedures instead.
+- **AI_COMPLETE**: Use `AI_COMPLETE` (not `SNOWFLAKE.CORTEX.COMPLETE`) — it supports `response_format => {'type':'json','schema':{...}}` for guaranteed valid JSON
+- **GRANT for Cortex**: `GRANT DATABASE ROLE SNOWFLAKE.CORTEX_USER TO ROLE {SLUG}_APP_ROLE` requires ACCOUNTADMIN
+
+---
+
 ## Key Patterns to Preserve (from references/misk-architecture.md)
 
 1. **`exec_sql()` pattern**: always returns `(list[dict], list[str], float)` -- rows use lowercase keys
