@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react'
+import ScenarioHeader from '../shared/ScenarioHeader'
 // import { apiFetch } from '../../lib/api'
 // import SqlPreviewButton from '../shared/SqlPreviewButton'
 
@@ -18,7 +19,7 @@ interface Step {
   status: 'success' | 'warning' | 'error'
 }
 
-export default function WizardStepPage() {
+export default function WizardStepPage({ presenterMode = false }: { presenterMode?: boolean }) {
   const [steps, setSteps] = useState<Step[]>([])
   const [visibleCount, setVisibleCount] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -57,13 +58,21 @@ export default function WizardStepPage() {
 
   return (
     <div className="space-y-6">
-      {/* Business Scenario — always visible */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-4">
-        <h3 className="font-semibold text-blue-900 dark:text-blue-100">Business Scenario</h3>
-        <p className="text-blue-800 dark:text-blue-200 mt-1">
-          Step-by-step demonstration of Snowflake capability.
-        </p>
-      </div>
+      {/* Scenario Header — domain-specific, NEVER generic */}
+      <ScenarioHeader
+        painPoint="{pain point — e.g. 'Data corruption can happen anytime. Without point-in-time recovery, production data is lost.'}"
+        businessValue="{value — e.g. 'Restore any table to any point in time — no backup infrastructure, no DBA.'}"
+        snowflakeFeature="{feature — e.g. 'Time Travel / AT(OFFSET) / BEFORE'}"
+        expectedOutcome="{outcome — e.g. 'Watch as we corrupt data, then restore it to the exact state before corruption — in seconds.'}"
+        presenterMode={presenterMode}
+        talkingPoint="{hook from catalog}"
+        demoSteps={[
+          "Click 'Start Demo' — all steps are fetched at once",
+          "Click 'Next Step' to reveal each step — explain what happened",
+          "At the final step, point out the restored data matches the original",
+        ]}
+        transition="{transition to next page}"
+      />
 
       {/* Controls */}
       <div className="flex gap-3">

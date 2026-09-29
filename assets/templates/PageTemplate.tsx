@@ -1,18 +1,20 @@
 /**
  * PageTemplate.tsx — Standard page component pattern for platform demos.
  * Every page follows this exact structure:
- *   1. HeroSection with feature badge
- *   2. Business Scenario box (always visible, never gated)
- *   3. Load button (NO auto-fetch)
- *   4. Results with SqlPreviewButton + DataPreview
+ *   1. ScenarioHeader (business context — ALWAYS visible, domain-specific)
+ *   2. Load button (NO auto-fetch)
+ *   3. Visualization (chart/table/graph — NEVER JSON.stringify)
  *
- * Replace: {feature}, {endpoint}, {business_scenario}
+ * Replace ALL {placeholders} with domain-specific content.
+ * The ScenarioHeader props come from the research context story arcs.
  */
 
 import { useState } from 'react'
-// import HeroSection from '../shared/HeroSection'
+import ScenarioHeader from '../shared/ScenarioHeader'
+// import ChartCard from '../shared/ChartCard'
+// import KPIGrid from '../shared/KPIGrid'
+// import DrillDownTable from '../shared/DrillDownTable'
 // import SqlPreviewButton from '../shared/SqlPreviewButton'
-// import DataPreview from '../shared/DataPreview'
 // import QueryTimeBadge from '../shared/QueryTimeBadge'
 // import { apiFetch } from '../../lib/api'
 
@@ -23,7 +25,11 @@ interface DataState<T> {
   ms: number | null
 }
 
-export default function PageTemplate() {
+interface PageTemplateProps {
+  presenterMode?: boolean
+}
+
+export default function PageTemplate({ presenterMode = false }: PageTemplateProps) {
   const [state, setState] = useState<DataState<any>>({
     loading: false,
     data: null,
@@ -44,23 +50,26 @@ export default function PageTemplate() {
 
   return (
     <div className="space-y-6">
-      {/* Hero Section */}
-      {/* <HeroSection
-        title="Page Title"
-        subtitle="One-line business benefit"
-        feature="{Snowflake Feature Name}"
-      /> */}
+      {/* SCENARIO HEADER — mandatory on every page.
+       * All props must be filled with domain-specific content from the research context.
+       * Generic text like "This shows performance" is NOT acceptable.
+       */}
+      <ScenarioHeader
+        painPoint="{customer_name} struggles with {specific pain point from research}."
+        businessValue="{One-sentence business outcome: what changes for the customer after seeing this.}"
+        snowflakeFeature="{Snowflake Feature Name}"
+        expectedOutcome="{What the audience should see after clicking Load — be specific: '10M records in under 2 seconds' not 'fast query'}"
+        presenterMode={presenterMode}
+        talkingPoint="{The one-liner to say out loud — from demo-pages-catalog.md Demo Hook}"
+        demoSteps={[
+          "Click 'Load Data' — point out the query time badge",
+          "{Highlight the key metric or chart — explain what it means for the customer}",
+          "{Show the SQL preview — explain the Snowflake feature powering it}",
+        ]}
+        transition="{What to say before navigating to the next page — connects this page's story to the next}"
+      />
 
-      {/* Business Scenario — ALWAYS visible, never behind a load button */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-4">
-        <h3 className="font-semibold text-blue-900 dark:text-blue-100">Business Scenario</h3>
-        <p className="text-blue-800 dark:text-blue-200 mt-1">
-          {/* {business_scenario_text} */}
-          Describe the real-world problem this page solves for the customer.
-        </p>
-      </div>
-
-      {/* Load Button — MANDATORY, no auto-fetch */}
+      {/* Load Button */}
       <button
         onClick={load}
         disabled={state.loading}
@@ -69,40 +78,22 @@ export default function PageTemplate() {
         {state.loading ? 'Loading...' : 'Load Data'}
       </button>
 
-      {/* Results */}
+      {/* Error */}
       {state.error && (
         <div className="text-red-500 bg-red-50 dark:bg-red-950 p-3 rounded">
           {state.error}
         </div>
       )}
 
+      {/* VISUALIZATION — use the right component for this page.
+       * See generate/SKILL.md visualization rules for the page-to-component mapping.
+       * NEVER use JSON.stringify. */}
       {state.data && (
         <div className="space-y-4">
           {/* <QueryTimeBadge ms={state.ms} /> */}
           {/* <SqlPreviewButton sql="SELECT ..." /> */}
-
-          {/* VISUALIZATION — choose the right component for this page:
-           *
-           * KPI cards:        import KPIGrid from '../shared/KPIGrid'
-           *                   <KPIGrid kpis={[{ label: "Total", value: state.data.total, trend: "+12%" }]} />
-           *
-           * Bar/Line/Area:    import ChartCard from '../shared/ChartCard'
-           *                   <ChartCard type="bar" data={state.data.rows} xKey="region" yKey="count" title="By Region" />
-           *
-           * Drill-down table: import DrillDownTable from '../shared/DrillDownTable'
-           *                   <DrillDownTable data={state.data.rows} columns={[...]} onDrillDown={...} />
-           *
-           * NEVER use JSON.stringify for production pages. Raw JSON is for debugging only.
-           */}
-
-          {/* Example: KPI + Chart combo (adapt per page) */}
           {/* <KPIGrid kpis={formatKPIs(state.data)} /> */}
           {/* <ChartCard type="bar" data={state.data.breakdown} xKey="category" yKey="count" title="Distribution" /> */}
-
-          {/* REMOVE THIS — placeholder only for template preview: */}
-          <pre className="text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded overflow-auto opacity-50">
-            {JSON.stringify(state.data, null, 2)}
-          </pre>
         </div>
       )}
     </div>

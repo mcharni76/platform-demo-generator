@@ -835,3 +835,66 @@ git commit -m "feat: S6 SPCS deployment — {slug}"
 ```
 
 The generate sub-skill MUST include these in the generated `package.json`. Without them, pages fall back to JSON dumps.
+
+## Scenario Context Rules (MANDATORY -- no generic business text)
+
+**Every generated page MUST include a `<ScenarioHeader>` component** (from `assets/templates/ScenarioHeader.tsx`) with ALL props filled using domain-specific content from the research context. Generic text is not acceptable.
+
+### What generic looks like (WRONG):
+```tsx
+<ScenarioHeader
+  painPoint="This page shows performance."
+  businessValue="Fast queries."
+  snowflakeFeature="Elastic Compute"
+  expectedOutcome="Data loads quickly."
+/>
+```
+
+### What domain-specific looks like (CORRECT):
+```tsx
+<ScenarioHeader
+  painPoint="{customer_name} processes 10M+ {entity} records daily across 13 regions. Legacy systems take 45+ minutes for a single regional report."
+  businessValue="Any analyst can query 10M records in under 2 seconds — no pre-aggregation, no materialized views, no waiting."
+  snowflakeFeature="Elastic Compute / Virtual Warehouses"
+  expectedOutcome="Watch the query time badge: cold cache ~1.8s, warm cache ~0.3s. The size reference table shows how this scales."
+  presenterMode={presenterMode}
+  talkingPoint="{customer_name} queries 10M {entity} records in 0.8 seconds — no pre-aggregation, no materialized view."
+  demoSteps={[
+    "Click 'Run Benchmark' — point out the cold cache time in the badge",
+    "Click 'Run Again' — point out the warm cache improvement (result cache)",
+    "Show the warehouse size reference table — explain auto-suspend and scaling",
+  ]}
+  transition="Now that we've seen the speed — let's see what you can DO with that speed. Analytics dashboards."
+/>
+```
+
+### Where the content comes from
+
+| ScenarioHeader prop | Source |
+|---------------------|--------|
+| `painPoint` | Research context → `pain_points` list → the pain point that maps to this page |
+| `businessValue` | Research context → `story_arcs` → the `hook` for this page |
+| `snowflakeFeature` | `references/demo-pages-catalog.md` → Snowflake Feature column |
+| `expectedOutcome` | `references/demo-pages-catalog.md` → Special column + domain adaptation |
+| `talkingPoint` | `references/demo-pages-catalog.md` → Demo Hook column |
+| `demoSteps` | `references/demo-pages-catalog.md` → endpoint list → translate to user actions |
+| `transition` | Research context → `demo_sequence` → what connects this page to the next |
+
+### Presenter Mode
+
+Every page receives `presenterMode` as a prop from the App.tsx context (`PresenterModeContext`). When the presenter clicks the "Presenter Mode" toggle in the header:
+- Purple panel appears below the business context with talking points, demo steps, and transition text
+- Audience sees only the challenge/value/outcome (the purple panel is visually marked "audience can't see this")
+- The partner uses this as a built-in teleprompter during the live demo
+
+### Enforcement checklist (generate sub-skill MUST verify)
+
+Before committing any page component, verify:
+- [ ] `ScenarioHeader` is imported and used (not the old Business Scenario `<div>`)
+- [ ] `painPoint` references the customer name and specific domain entities
+- [ ] `businessValue` is a concrete outcome (not "this is useful")
+- [ ] `expectedOutcome` says what to look for after clicking Load (specific numbers or behaviors)
+- [ ] `talkingPoint` is adapted from the demo-pages-catalog Demo Hook with domain entities
+- [ ] `demoSteps` has 2-4 concrete actions (not "explore the data")
+- [ ] `transition` connects to the next page in the demo flow
+- [ ] `presenterMode={presenterMode}` is passed (not hardcoded to false)

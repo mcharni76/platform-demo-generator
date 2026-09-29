@@ -7,6 +7,7 @@
  */
 
 import { useState } from 'react'
+import ScenarioHeader from '../shared/ScenarioHeader'
 // import { apiFetch } from '../../lib/api'
 // import SqlPreviewButton from '../shared/SqlPreviewButton'
 // import QueryTimeBadge from '../shared/QueryTimeBadge'
@@ -32,7 +33,7 @@ const CARDS: CardConfig[] = [
   { id: 'card3', title: 'Card 3 Title', description: 'What this demonstrates', endpoint: '/api/page/card3', feature: 'FEATURE_3' },
 ]
 
-export default function NCIMCardPage() {
+export default function NCIMCardPage({ presenterMode = false }: { presenterMode?: boolean }) {
   const [cardStates, setCardStates] = useState<Record<string, CardState>>(
     Object.fromEntries(CARDS.map(c => [c.id, { loading: false, data: null, error: null, ms: null }]))
   )
@@ -59,13 +60,21 @@ export default function NCIMCardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Business Scenario — always visible */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-4">
-        <h3 className="font-semibold text-blue-900 dark:text-blue-100">Business Scenario</h3>
-        <p className="text-blue-800 dark:text-blue-200 mt-1">
-          Each card demonstrates an independent capability. Run them in any order.
-        </p>
-      </div>
+      {/* Scenario Header — domain-specific, NEVER generic */}
+      <ScenarioHeader
+        painPoint="{pain point from research}"
+        businessValue="{business value}"
+        snowflakeFeature="{feature}"
+        expectedOutcome="{what to watch — e.g. 'Each card demonstrates an independent ML capability. Run them in any order.'}"
+        presenterMode={presenterMode}
+        talkingPoint="{demo hook from catalog}"
+        demoSteps={[
+          "Run Card 1 — {explain what it shows}",
+          "Run Card 2 — {explain what it shows}",
+          "Run Card 3 — {explain what it shows}",
+        ]}
+        transition="{transition to next page}"
+      />
 
       {/* Independent Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

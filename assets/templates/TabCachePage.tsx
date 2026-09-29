@@ -6,6 +6,8 @@
  */
 
 import { useState } from 'react'
+import ScenarioHeader from '../shared/ScenarioHeader'
+// import ChartCard from '../shared/ChartCard'
 // import { apiFetch } from '../../lib/api'
 
 type TabKey = 'tab1' | 'tab2' | 'tab3'
@@ -23,7 +25,7 @@ const TAB_CONFIG: Record<TabKey, { label: string; endpoint: string; feature: str
   tab3: { label: 'Third Tab', endpoint: '/api/page/tab3', feature: 'Feature C' },
 }
 
-export default function TabCachePage() {
+export default function TabCachePage({ presenterMode = false }: { presenterMode?: boolean }) {
   const [activeTab, setActiveTab] = useState<TabKey>('tab1')
   const [tabData, setTabData] = useState<Partial<Record<TabKey, TabDataState>>>({})
 
@@ -51,6 +53,22 @@ export default function TabCachePage() {
 
   return (
     <div className="space-y-6">
+      {/* Scenario Header — domain-specific, NEVER generic */}
+      <ScenarioHeader
+        painPoint="{pain point for this page}"
+        businessValue="{business value}"
+        snowflakeFeature="{feature}"
+        expectedOutcome="{what to watch — e.g. 'Each tab shows a different analytical view. Data is cached — switching tabs never re-fetches.'}"
+        presenterMode={presenterMode}
+        talkingPoint="{hook from catalog}"
+        demoSteps={[
+          "Load the first tab — point out the chart and key metric",
+          "Switch to tab 2 — note the green dot (cached, no re-fetch)",
+          "Switch to tab 3 — show a different analytical dimension",
+        ]}
+        transition="{transition to next page}"
+      />
+
       {/* Tab Bar */}
       <div className="flex border-b border-gray-200 dark:border-gray-700">
         {(Object.keys(TAB_CONFIG) as TabKey[]).map(tab => (
@@ -78,11 +96,11 @@ export default function TabCachePage() {
         {current?.loading ? 'Loading...' : current?.data ? 'Loaded ✓' : 'Load Data'}
       </button>
 
-      {/* Tab Content */}
+      {/* Tab Content — use ChartCard, DrillDownTable, or KPIGrid per tab */}
       {current?.data && (
-        <pre className="text-sm bg-gray-100 dark:bg-gray-800 p-4 rounded overflow-auto">
-          {JSON.stringify(current.data, null, 2)}
-        </pre>
+        <div className="space-y-4">
+          {/* <ChartCard type="bar" data={current.data.rows} xKey="name" yKey="value" title={TAB_CONFIG[activeTab].label} /> */}
+        </div>
       )}
     </div>
   )
